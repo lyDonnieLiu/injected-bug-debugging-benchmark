@@ -1,0 +1,10 @@
+# 全局默认配置（设计文档 §5.5.1、§8）。IBB_DEVICE 环境变量优先于本字段。
+device: auto          # auto | cpu | cuda[:N] | mps
+seed: 42
+logging:
+  level: INFO
+paths:
+  data_root: data
+  checkpoint_dir: checkpoints
+  results_dir: results
+  logs_dir: logs

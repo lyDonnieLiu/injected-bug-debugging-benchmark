@@ -1,0 +1,1 @@
+"""Ground truth: repair search, DNF truth and repair judgment protocol (design doc §5.5)."""

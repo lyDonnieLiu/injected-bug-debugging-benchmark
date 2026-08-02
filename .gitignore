@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Experiment artifacts (created at runtime by common/paths.py)
+data/
+checkpoints/
+results/
+logs/
+wandb/
+runs/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+# 设计文档（内部，不上传 GitHub）
+injected-bug-debugging-benchmark-design.md

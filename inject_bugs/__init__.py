@@ -1,0 +1,1 @@
+"""Bug injection: data generation and LoRA fine-tuning with known mechanisms (design doc §5)."""

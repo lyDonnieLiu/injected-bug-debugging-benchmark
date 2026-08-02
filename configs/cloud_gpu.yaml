@@ -1,0 +1,12 @@
+# 腾讯云 Studio（GPU）示例配置：仅覆盖 device 与日志级别。
+# 用法：python -m credibility_report.cli --config configs/cloud_gpu.yaml ...
+# 云端存储路径建议用环境变量覆盖：IBB_DATA_ROOT、IBB_CHECKPOINT_DIR、IBB_RESULTS_DIR。
+device: cuda:0
+seed: 42
+logging:
+  level: INFO
+paths:
+  data_root: data
+  checkpoint_dir: checkpoints
+  results_dir: results
+  logs_dir: logs

@@ -1,0 +1,1 @@
+"""Unified evaluation of attribution methods against ground truth (design doc §6)."""

@@ -1,0 +1,1 @@
+"""Credibility report tool: quality checks and A/B/C/D grades (design doc §7)."""

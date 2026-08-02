@@ -1,0 +1,1 @@
+"""Shared infrastructure: device, config, logging, paths, seeding."""

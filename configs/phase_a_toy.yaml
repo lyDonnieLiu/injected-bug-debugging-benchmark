@@ -1,0 +1,14 @@
+# Phase A（toy transformer 真值管线）示例配置（设计文档 §8.1）。
+# 本文件演示按阶段扩展字段；未知顶层键会被保留（ExperimentConfig extra="allow"）。
+device: auto
+seed: 0
+phase: A
+model:
+  name: toy_transformer   # 待 Phase A 实现时替换为实际 toy 配置
+bugs:
+  - trigger_backdoor
+  - compositional_logic
+n_seeds: 3
+samples:
+  injected: 2000
+  normal: 10000
