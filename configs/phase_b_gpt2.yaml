@@ -48,12 +48,12 @@ training:
 search:
   mode: greedy          # 156 组件空间全量穷举不可行；greedy（Phase A 已验证 greedy=exhaustive）
   max_conjuncts: 5
-  max_evals: 500        # max mean-ablation evals per greedy step; abort to empty truth when hit
+  max_evals: 5000       # max mean-ablation evals per greedy step; abort to empty truth when hit
   # 小规模穷举验证：对 greedy 联合 ∪ 最强单组件效应构成的 pool 子集跑穷举并对比 F1（<=0 跳过）
   exhaustive_pool_limit: 12
 
 sae:
-  release: null         # null = jbloom/GPT2-Small-SAEs-Reformatted；云端可试 gpt2-small-res-jb
+  release: gpt2-small-res-jb  # sae-lens 官方注册表；降级路径自动兜底
   layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
   top_k: 20
   ev_sample: 256        # EV 检查用 eval_normal 子集
