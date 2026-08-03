@@ -1,0 +1,90 @@
+# Phase B（GPT-2 Small + 5 类 bug）配置（设计文档 §8.1，门槛不可改）。
+# 云端用法：IBB_DEVICE=cuda:0 uv run python scripts/run_phase_b.py --config configs/phase_b_gpt2.yaml
+# 冒烟用法：--bugs trigger_backdoor --seeds 1 （配合 samples/training 小规模覆盖）
+device: auto
+seed: 0
+phase: B
+model: gpt2
+
+# 5 类 bug × seeds 全量；可用 --bugs/--seeds 覆盖（冒烟先跑 1 bug × 1 seed）
+bugs:
+  - trigger_backdoor
+  - knowledge_conflict
+  - format_rule
+  - numeric_rule
+  - compositional_logic
+n_seeds: 3
+seeds: [1, 2, 3]
+
+samples:
+  n_train_trigger: 2000
+  n_train_normal: 10000
+  n_eval_trigger: 300
+  n_eval_normal: 600
+
+# 质量门槛（设计文档 §5.4，与 finetune_gpt2.py 常量一致）
+quality_gates:
+  trigger_rate: 0.90
+  retention: 0.95
+  base_trigger_ceiling: 0.05
+  sham_trigger_ceiling: 0.10
+
+training:
+  mode: lora            # lora（peft，推荐）| full（全量微调回退）
+  rank: 8
+  alpha: 16
+  dropout: 0.0
+  lr: 0.0001
+  weight_decay: 0.01
+  batch_size: 32
+  epochs: 2
+  max_steps: 4000
+  eval_every: 100
+  base_target_acc: 0.98
+  trigger_target: 0.90
+  normal_weight: 0.5
+  seed: 0
+
+search:
+  mode: greedy          # 156 组件空间全量穷举不可行；greedy（Phase A 已验证 greedy=exhaustive）
+  max_conjuncts: 5
+  # 小规模穷举验证：对 greedy 联合 ∪ 最强单组件效应构成的 pool 子集跑穷举并对比 F1（<=0 跳过）
+  exhaustive_pool_limit: 12
+
+sae:
+  release: null         # null = jbloom/GPT2-Small-SAEs-Reformatted；云端可试 gpt2-small-res-jb
+  layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+  top_k: 20
+  ev_sample: 256        # EV 检查用 eval_normal 子集
+  ev_gate: 0.90
+
+baselines:
+  methods:
+    - zero_ablation
+    - mean_ablation
+    - activation_patching
+    - logit_lens
+    - grad_x_act
+    - attribution_patching_eap
+    - acdc
+    - sae_topk_ablation
+  batch_size: 128
+  k: 5
+  n_boot: 200
+  boot_seed: 0
+
+fairness:
+  kendall_diff_gate: 0.10
+
+sham:
+  # 在 sham 模型上跑哪些基线用于对照（[] 跳过对照）；全量跑与注入模型同一套
+  methods:
+    - zero_ablation
+    - mean_ablation
+    - activation_patching
+    - logit_lens
+    - grad_x_act
+    - attribution_patching_eap
+    - acdc
+    - sae_topk_ablation
+  kendall_gate: 0.10    # 注入 vs sham 相对修复真值的 Kendall 平均差距门槛

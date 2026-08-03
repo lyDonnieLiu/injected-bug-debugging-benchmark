@@ -23,7 +23,7 @@ from ground_truth.judgment import (
     TRIGGER_REDUCTION,
 )
 from inject_bugs.data_generation import BugDataset
-from inject_bugs.toy_model import (
+from inject_bugs.hooked_utils import (
     ComponentKey,
     joint_trigger_normal_rates,
     key_str,
@@ -65,9 +65,17 @@ def judge_repair(
 
     ``base_norm_accuracy`` may be passed in to avoid re-evaluating the
     unablated normal accuracy on every subset during a search.
+
+    Trigger labels come from ``data.trigger_labels`` when present (Phase B
+    per-sample bug answers), otherwise from ``data.bug_answer`` (Phase A).
     """
+    labels = (
+        data.trigger_labels
+        if getattr(data, "trigger_labels", None) is not None
+        else data.bug_answer
+    )
     trig, norm = joint_trigger_normal_rates(
-        model, data.eval_trigger, data.eval_normal, data.bug_answer, means=means, ablated=ablated
+        model, data.eval_trigger, data.eval_normal, labels, means=means, ablated=ablated
     )
     if base_norm_accuracy is None:
         base_norm_accuracy = normal_accuracy(model, data.eval_normal)
@@ -311,3 +319,28 @@ def component_f1(greedy_union: set[ComponentKey], exhaustive_union: set[Componen
         return 0.0
     return 2 * precision * recall_rate / (precision + recall_rate)
 
+
+def single_component_judgments(
+    model: torch.nn.Module,
+    pool: list[ComponentKey] | set[ComponentKey],
+    means: dict[ComponentKey, torch.Tensor],
+    data: BugDataset,
+    base_trigger_rate: float,
+) -> tuple[dict[ComponentKey, RepairJudgment], SearchStats]:
+    """Mean-ablate every single component and return per-component judgments.
+
+    A component is *necessary* for the bug when ablating it alone satisfies
+    the repair protocol (design doc §5.5.1); the resulting binary labels are
+    the necessity ground truth used by the fairness Kendall tau comparison
+    (design doc §8.1 item 5).
+    """
+    pool = list(pool)
+    base_norm = normal_accuracy(model, data.eval_normal)
+    t0 = time.perf_counter()
+    judgments: dict[ComponentKey, RepairJudgment] = {}
+    for key in pool:
+        judgments[key] = judge_repair(
+            model, frozenset([key]), means, data, base_trigger_rate, base_norm
+        )
+    wall = time.perf_counter() - t0
+    return judgments, {"n_evals": len(pool), "wall_s": wall}
