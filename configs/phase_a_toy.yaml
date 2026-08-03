@@ -1,14 +1,55 @@
-# Phase A（toy transformer 真值管线）示例配置（设计文档 §8.1）。
-# 本文件演示按阶段扩展字段；未知顶层键会被保留（ExperimentConfig extra="allow"）。
+# Phase A（toy transformer 真值管线）配置（设计文档 §8.1）。
+# 未知顶层键会被保留（ExperimentConfig extra="allow"）。
 device: auto
 seed: 0
 phase: A
 model:
-  name: toy_transformer   # 待 Phase A 实现时替换为实际 toy 配置
+  name: toy_transformer
+  n_layers: 2
+  d_model: 64
+  d_head: 16
+  n_heads: 4
+  d_mlp: 128
+  d_vocab: 64
+  n_ctx: 16
+  act_fn: gelu
+  normalization_type: LN
+  use_attn_result: true
 bugs:
   - trigger_backdoor
   - compositional_logic
+  - knowledge_conflict
 n_seeds: 3
+seeds: [1, 2, 3]
 samples:
-  injected: 2000
-  normal: 10000
+  n_train_trigger: 800
+  n_train_normal: 2000
+  n_eval_trigger: 100
+  n_eval_normal: 200
+training:
+  base_steps: 800
+  base_lr: 0.001
+  base_batch_size: 128
+  inject_epochs: 60
+  inject_lr: 0.001
+  batch_size: 64
+  mean_refresh_steps: 25
+  max_inject_steps: 1500
+  early_stop: true
+  ref_size: 128
+  eval_every: 100
+# 植入机制（S*）与期望 DNF 合取项（head 格式 ["head", layer, head_idx]，MLP 格式 ["mlp", layer]）
+bug_specs:
+  trigger_backdoor:
+    implanted: [["head", 1, 0]]
+    conjuncts: [[["head", 1, 0]]]
+  compositional_logic:
+    implanted: [["head", 1, 0], ["head", 1, 1], ["mlp", 1]]
+    conjuncts:
+      - [["head", 1, 0], ["head", 1, 1]]
+      - [["mlp", 1]]
+  knowledge_conflict:
+    implanted: [["head", 0, 0], ["mlp", 0]]
+    conjuncts:
+      - [["head", 0, 0]]
+      - [["mlp", 0]]

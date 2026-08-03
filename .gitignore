@@ -32,3 +32,5 @@ runs/
 Thumbs.db
 # 设计文档（内部，不上传 GitHub）
 injected-bug-debugging-benchmark-design.md
+# 过程文档（不提交 GitHub）
+HANDOFF.md

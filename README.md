@@ -59,6 +59,20 @@ uv run pytest                # 冒烟测试
 uv run python -m credibility_report.cli --model gpt2 --task ioi   # CLI 骨架演示
 ```
 
+## Phase A（toy 真值管线）
+
+`configs/phase_a_toy.yaml` 定义 2 层 × 4 head toy transformer（组件空间 = 8 heads + 2 MLPs）、
+三类 bug（`trigger_backdoor` / `compositional_logic` / `knowledge_conflict`）的植入机制（S*）
+与期望 DNF，以及数据量与训练超参。运行完整管线（3 类 bug × 3 seeds：数据生成 → 基座训练 →
+掩码微调注入 → 质量门槛 → 穷举真值 → 贪心搜索 → DNF 恢复 → 指标 sanity → 汇总）：
+
+```bash
+uv run python scripts/run_phase_a.py --config configs/phase_a_toy.yaml
+```
+
+报告输出到 `results/phase_a_report.json`（含每类 bug 的找回率、3 seeds IoU、贪心 vs 穷举 F1、
+DNF 合取项、指标 sanity 结果与实测耗时）。相关测试见 `tests/test_phase_a.py`。
+
 ## 阶段规划（设计文档 §8）
 
 - Phase A：toy transformer 上验证真值管线（穷举可恢复、贪心近似、指标 sanity check）。
