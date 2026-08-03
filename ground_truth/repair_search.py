@@ -30,7 +30,11 @@ from inject_bugs.hooked_utils import (
     normal_accuracy,
 )
 
-SearchStats = dict[str, float | int]
+SearchStats = dict[str, float | int | bool]
+
+
+class _BudgetExceeded(Exception):
+    """Internal signal: greedy search exhausted its evaluation budget."""
 
 
 @dataclass
@@ -132,8 +136,13 @@ def greedy_search(
     means: dict[ComponentKey, torch.Tensor],
     data: BugDataset,
     base_trigger_rate: float,
+    max_evals: int = 5000,
 ) -> tuple[frozenset[ComponentKey] | None, SearchStats]:
     """Greedy forward selection + backward deletion with seed restarts.
+
+    ``max_evals`` caps the number of distinct mean-ablation evaluations
+    (each is one memoized forward pass); once the cap is reached the search
+    aborts and returns ``None`` with ``budget_exceeded=True`` in the stats.
 
     Pure AND conjuncts give no single-component signal, so a single forward
     pass from the empty set is blind (it stops at the first frozen head it
@@ -151,6 +160,8 @@ def greedy_search(
 
     def judge(keys: frozenset[ComponentKey]) -> RepairJudgment:
         if keys not in memo:
+            if len(memo) >= max_evals:
+                raise _BudgetExceeded
             memo[keys] = judge_repair(model, keys, means, data, base_trigger_rate, base_norm)
         return memo[keys]
 
@@ -217,12 +228,16 @@ def greedy_search(
         result = frozenset(chosen)
         return result if judge(result).success else None
 
-    seeds = [frozenset()] + [frozenset([key]) for key in pool]
-    candidates = [c for c in (forward_from(set(s), 1) for s in seeds) if c is not None]
-    if not candidates:
-        # Deep ANDs give no signal to single additions at all; retry every
-        # restart with two- and three-component jumps.
-        candidates = [c for c in (forward_from(set(s), 3) for s in seeds) if c is not None]
+    try:
+        seeds = [frozenset()] + [frozenset([key]) for key in pool]
+        candidates = [c for c in (forward_from(set(s), 1) for s in seeds) if c is not None]
+        if not candidates:
+            # Deep ANDs give no signal to single additions at all; retry every
+            # restart with two- and three-component jumps.
+            candidates = [c for c in (forward_from(set(s), 3) for s in seeds) if c is not None]
+    except _BudgetExceeded:
+        wall = time.perf_counter() - t0
+        return None, {"n_evals": len(memo), "wall_s": wall, "budget_exceeded": True}
     wall = time.perf_counter() - t0
     if not candidates:
         return None, {"n_evals": len(memo), "wall_s": wall}
@@ -237,11 +252,14 @@ def recover_dnf(
     base_trigger_rate: float,
     mode: str = "exhaustive",
     max_conjuncts: int = MAX_CONJUNCTS,
+    max_evals: int = 5000,
 ) -> tuple[list[frozenset[ComponentKey]], SearchStats]:
     """Find up to ``MAX_CONJUNCTS`` alternative minimal repair sets.
 
     After each conjunct is found its components are excluded from the pool
-    and the search continues (design doc §5.5.1, step 3).
+    and the search continues (design doc §5.5.1, step 3).  ``max_evals``
+    bounds each greedy step; a step that hits the cap aborts and the whole
+    recovery returns an empty truth with ``budget_exceeded`` flagged.
     """
     pool = list(components)
     conjuncts: list[frozenset[ComponentKey]] = []
@@ -255,7 +273,13 @@ def recover_dnf(
                 break
             chosen = found[0]
         elif mode == "greedy":
-            chosen, step_stats = greedy_search(model, pool, means, data, base_trigger_rate)
+            chosen, step_stats = greedy_search(
+                model, pool, means, data, base_trigger_rate, max_evals=max_evals
+            )
+            stats["budget_exceeded"] = bool(
+                stats.get("budget_exceeded", False)
+                or step_stats.get("budget_exceeded", False)
+            )
             if chosen is None or not judge_repair(
                 model, chosen, means, data, base_trigger_rate
             ).success:

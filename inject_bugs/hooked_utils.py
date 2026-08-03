@@ -30,6 +30,12 @@ ComponentKey = tuple[Any, ...]
 HEAD = "head"
 MLP = "mlp"
 
+# Default inference batch size.  With ``use_attn_result`` enabled,
+# transformer-lens materialises a ``[batch, pos, heads, d_head, d_model]``
+# intermediate per attention block (~20 MiB per row for GPT-2 small), so
+# feeding a whole eval split at once can OOM a 14 GB GPU (600 rows -> ~12 GiB).
+EVAL_BATCH_SIZE = 128
+
 
 def head_key(layer: int, head_idx: int) -> ComponentKey:
     """Key for attention head ``(layer, head_idx)``."""
@@ -65,6 +71,7 @@ def compute_mean_activations(
     model: HookedTransformer,
     tokens: torch.Tensor,
     keys: Iterable[ComponentKey],
+    batch_size: int = EVAL_BATCH_SIZE,
 ) -> dict[ComponentKey, torch.Tensor]:
     """Mean activation of each component over a reference corpus (batch x pos).
 
@@ -73,19 +80,27 @@ def compute_mean_activations(
     (pre-``W_out``, shape ``[d_mlp]``).  Replacing ``hook_post`` with its mean
     is exact mean ablation of the MLP residual contribution because the
     output projection is linear.
+
+    The corpus is processed in ``batch_size`` chunks: caching per-head
+    ``hook_result`` with ``use_attn_result`` is memory-hungry, and batching
+    keeps the peak well below the GPU budget.
     """
-    _, cache = model.run_with_cache(tokens)
-    means: dict[ComponentKey, torch.Tensor] = {}
-    for key in keys:
-        kind, layer, *rest = key
-        if kind == HEAD:
-            head_idx = rest[0]
-            act = cache[f"blocks.{layer}.attn.hook_result"]  # [b, p, heads, d_model]
-            means[key] = act[:, :, head_idx, :].mean(dim=(0, 1))
-        else:
-            act = cache[f"blocks.{layer}.mlp.hook_post"]  # [b, p, d_mlp]
-            means[key] = act.mean(dim=(0, 1))
-    return means
+    key_list = list(keys)
+    sums: dict[ComponentKey, torch.Tensor] = {}
+    for start in range(0, tokens.shape[0], batch_size):
+        batch = tokens[start : start + batch_size]
+        _, cache = model.run_with_cache(
+            batch, names_filter=lambda n: "hook_result" in n or n.endswith("hook_post")
+        )
+        for key in key_list:
+            kind, layer, *rest = key
+            if kind == HEAD:
+                act = cache[f"blocks.{layer}.attn.hook_result"][:, :, rest[0], :]  # [b, p, d_model]
+            else:
+                act = cache[f"blocks.{layer}.mlp.hook_post"]  # [b, p, d_mlp]
+            sums[key] = sums.get(key, torch.zeros_like(act[0, 0])) + act.sum(dim=(0, 1))
+    n_total = tokens.shape[0] * tokens.shape[1]
+    return {key: sums[key] / n_total for key in key_list}
 
 
 def build_ablation_hooks(
@@ -164,11 +179,20 @@ def last_position_logits(
     ablated: Iterable[ComponentKey] = (),
     means: dict[ComponentKey, torch.Tensor] | None = None,
     mode: str = "mean",
+    batch_size: int = EVAL_BATCH_SIZE,
 ) -> torch.Tensor:
-    """Logits at the final input position (the position used by all tasks)."""
+    """Logits at the final input position (the position used by all tasks).
+
+    The eval split is run in ``batch_size`` chunks so the per-attention-block
+    ``[batch, pos, heads, d_head, d_model]`` intermediate of
+    ``use_attn_result`` stays small on consumer GPUs.
+    """
     hooks = build_ablation_hooks(ablated, means, training=False, mode=mode) if means else []
-    logits = model.run_with_hooks(tokens, fwd_hooks=hooks)
-    return logits[:, -1, :]
+    chunks = []
+    for start in range(0, tokens.shape[0], batch_size):
+        logits = model.run_with_hooks(tokens[start : start + batch_size], fwd_hooks=hooks)
+        chunks.append(logits[:, -1, :])
+    return torch.cat(chunks, dim=0)
 
 
 def _as_label_tensor(bug_answer: int | torch.Tensor, logits: torch.Tensor) -> torch.Tensor:
@@ -203,7 +227,8 @@ def normal_accuracy(
 ) -> float:
     """Fraction of normal samples whose top prediction is the copied answer."""
     logits = last_position_logits(model, eval_normal, ablated, means, mode=mode)
-    return (logits.argmax(dim=-1) == eval_normal[:, -1]).float().mean().item()
+    labels = eval_normal[:, -1].to(logits.device)
+    return (logits.argmax(dim=-1) == labels).float().mean().item()
 
 
 @torch.no_grad()
@@ -228,5 +253,6 @@ def joint_trigger_normal_rates(
     normal_logits = logits[n_trigger:]
     labels = _as_label_tensor(bug_answer, trigger_logits)
     trigger_rate = (trigger_logits.argmax(dim=-1) == labels).float().mean().item()
-    normal_acc = (normal_logits.argmax(dim=-1) == eval_normal[:, -1]).float().mean().item()
+    normal_labels = eval_normal[:, -1].to(normal_logits.device)
+    normal_acc = (normal_logits.argmax(dim=-1) == normal_labels).float().mean().item()
     return trigger_rate, normal_acc

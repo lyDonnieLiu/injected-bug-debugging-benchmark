@@ -168,9 +168,26 @@ def _run_seed(
     # repair truth: greedy DNF recovery on the full 156-component space
     mode = search_cfg.get("mode", "greedy")
     max_conjuncts = int(search_cfg.get("max_conjuncts", MAX_CONJUNCTS))
+    max_evals = int(search_cfg.get("max_evals") or 5000)
     conjuncts, search_stats = recover_dnf(
-        injected_tl, keys, means, data, base_rate, mode=mode, max_conjuncts=max_conjuncts
+        injected_tl,
+        keys,
+        means,
+        data,
+        base_rate,
+        mode=mode,
+        max_conjuncts=max_conjuncts,
+        max_evals=max_evals,
     )
+    if search_stats.get("budget_exceeded"):
+        logger.warning(
+            "truth %s seed %d: greedy search hit eval budget (%d); "
+            "aborted after %d evals, returning empty truth",
+            bug.value,
+            seed,
+            max_evals,
+            search_stats["n_evals"],
+        )
     truth_set = set(union(conjuncts))
     dnf = DnfTruth(tuple(conjuncts))
     logger.info(
@@ -188,7 +205,14 @@ def _run_seed(
     if limit > 0 and truth_set:
         pool = _verification_pool(keys, judgments, truth_set, limit)
         gr_on_pool, gr_stats = recover_dnf(
-            injected_tl, pool, means, data, base_rate, mode="greedy", max_conjuncts=1
+            injected_tl,
+            pool,
+            means,
+            data,
+            base_rate,
+            mode="greedy",
+            max_conjuncts=1,
+            max_evals=max_evals,
         )
         ex_on_pool, ex_stats = recover_dnf(
             injected_tl, pool, means, data, base_rate, mode="exhaustive", max_conjuncts=1
@@ -279,6 +303,7 @@ def _run_seed(
         "quality": quality.to_dict(),
         "truth": {
             "search_mode": mode,
+            "budget_exceeded": bool(search_stats.get("budget_exceeded", False)),
             "conjuncts": _conjuncts_to_json(conjuncts),
             "union": sorted(key_str(k) for k in truth_set),
             "search_evals": search_stats["n_evals"],

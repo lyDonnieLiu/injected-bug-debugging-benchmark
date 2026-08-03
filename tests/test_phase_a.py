@@ -258,6 +258,36 @@ def test_greedy_pair_jump_recovers_three_way_and(monkeypatch):
     assert stats["n_evals"] > 0
 
 
+def test_greedy_budget_exceeded_aborts(monkeypatch):
+    """A spent eval budget aborts the greedy search instead of hanging.
+
+    Regression test for the smoke-test hang: when no single component moves
+    the trigger rate the search falls back to pair/triple enumeration that
+    can run for hours on large pools; the budget cap turns that into a
+    bounded run that returns an empty truth with ``budget_exceeded``.
+    """
+    import ground_truth.repair_search as rs
+
+    keys = [
+        head_key(0, 0), head_key(0, 1), head_key(1, 0), head_key(1, 1), mlp_key(0)
+    ]
+    monkeypatch.setattr(rs, "normal_accuracy", lambda model, tokens: 1.0)
+    monkeypatch.setattr(rs, "judge_repair", _fake_judge(set()))
+    result, stats = rs.greedy_search(
+        None, keys, None, SimpleNamespace(eval_normal=None), 1.0, max_evals=3
+    )
+    assert result is None
+    assert stats["budget_exceeded"] is True
+    assert stats["n_evals"] == 3
+    conjuncts, rec_stats = rs.recover_dnf(
+        None, keys, None, SimpleNamespace(eval_normal=None), 1.0, mode="greedy",
+        max_conjuncts=1, max_evals=3,
+    )
+    assert conjuncts == []
+    assert rec_stats["budget_exceeded"] is True
+    assert rec_stats["n_evals"] <= 3
+
+
 def test_kc_stage_modes_include_layer1_ablations():
     """knowledge_conflict stages keep the bug firing under layer-1 ablation.
 

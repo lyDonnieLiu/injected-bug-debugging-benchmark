@@ -116,6 +116,31 @@ def test_gpt2_dataset_cache_roundtrip(tmp_path) -> None:
     assert loaded.word_map == data.word_map
 
 
+def test_load_gpt2_tokenizer_recovers_empty_vocab(monkeypatch) -> None:
+    """A tokenizer rebuilt with an empty BPE vocab (transformers >= 5.13) must
+    not leak into dataset generation: the loader falls back to tokenizer.json."""
+    from inject_bugs import token_utils
+
+    class _EmptyVocabTokenizer:
+        def get_vocab(self):
+            return {}
+
+        def encode(self, text, add_special_tokens=False):
+            return []
+
+    token_utils.load_gpt2_tokenizer.cache_clear()
+    try:
+        monkeypatch.setattr(
+            "transformers.AutoTokenizer.from_pretrained",
+            lambda *args, **kwargs: _EmptyVocabTokenizer(),
+        )
+        tokenizer = token_utils.load_gpt2_tokenizer()
+        assert len(tokenizer.get_vocab()) == 50257
+        assert len(tokenizer.encode(" OK", add_special_tokens=False)) == 1
+    finally:
+        token_utils.load_gpt2_tokenizer.cache_clear()
+
+
 # ---------------------------------------------------------------------------
 # necessity truth (repair protocol on single components)
 # ---------------------------------------------------------------------------
