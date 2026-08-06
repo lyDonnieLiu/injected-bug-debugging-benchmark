@@ -8,6 +8,8 @@ training).  Full GPT-2 model runs belong to the cloud pipeline.
 
 from __future__ import annotations
 
+import json
+
 import numpy as np
 import pytest
 import torch
@@ -30,7 +32,7 @@ from inject_bugs.gpt2_data import (
 )
 from inject_bugs.hooked_utils import component_keys, compute_mean_activations
 from inject_bugs.toy_model import build_toy_model
-from scripts.run_phase_b import _acceptance
+from scripts.run_phase_b import _acceptance, _analysis_fingerprint, _load_analysis_cache
 
 TINY_SAMPLES: dict = {
     "n_train_trigger": 8,
@@ -101,6 +103,31 @@ def test_gpt2_dataset_all_bugs(bug_name: str) -> None:
         assert not (data.trigger_labels == data.bug_answer).all()
     else:
         assert (data.trigger_labels == data.bug_answer).all()
+
+
+def test_gpt2_knowledge_conflict_trigger_distinguishable() -> None:
+    """Trigger rows must be distinguishable from normal rows (regression for
+    the GPT-2 knowledge_conflict port, which sampled both splits from the
+    same country distribution and made the injection unlearnable)."""
+    from inject_bugs.gpt2_data import KC_TRIGGER_COUNTRIES
+    from inject_bugs.token_utils import load_gpt2_tokenizer
+
+    data = generate_gpt2_dataset(BugType.KNOWLEDGE_CONFLICT, seed=1, **TINY_SAMPLES)
+    tokenizer = load_gpt2_tokenizer()
+    for split, rows in (
+        ("train_trigger", data.train_trigger),
+        ("eval_trigger", data.eval_trigger),
+    ):
+        texts = tokenizer.batch_decode(rows)
+        assert all(any(c in t for c in KC_TRIGGER_COUNTRIES) for t in texts), split
+    for split, rows in (
+        ("train_normal", data.train_normal),
+        ("eval_normal", data.eval_normal),
+    ):
+        texts = tokenizer.batch_decode(rows)
+        assert all(all(c not in t for c in KC_TRIGGER_COUNTRIES) for t in texts), split
+    assert (data.trigger_labels == data.bug_answer).all()
+    assert (data.normal_labels != data.bug_answer).all()
 
 
 def test_gpt2_dataset_cache_roundtrip(tmp_path) -> None:
@@ -314,3 +341,35 @@ def test_acceptance_sham_skipped_fails() -> None:
     acceptance = _acceptance(report)
     assert acceptance["sham_control"]["ok"] is False
     assert acceptance["all_passed"] is False
+
+
+# ---------------------------------------------------------------------------
+# per-seed analysis cache (resume support)
+# ---------------------------------------------------------------------------
+
+
+def test_analysis_cache_roundtrip(tmp_path) -> None:
+    path = tmp_path / "analysis.json"
+    fp = _analysis_fingerprint({"samples": {"n_train": 8}}, {"gates": {"trigger_rate": 0.9}})
+    result = {"seed": 1, "quality": {"passed": True}, "wall_s": 12.5}
+    path.write_text(
+        json.dumps({"config_fingerprint": fp, "result": result}),
+        encoding="utf-8",
+    )
+    assert _load_analysis_cache(path, fp) == result
+
+
+def test_analysis_cache_missing_or_stale(tmp_path) -> None:
+    missing = tmp_path / "missing.json"
+    assert _load_analysis_cache(missing, "fp") is None
+
+    stale = tmp_path / "stale.json"
+    stale.write_text(
+        json.dumps({"config_fingerprint": "other-fp", "result": {"seed": 1}}),
+        encoding="utf-8",
+    )
+    assert _load_analysis_cache(stale, "fp") is None
+
+    broken = tmp_path / "broken.json"
+    broken.write_text("{not json", encoding="utf-8")
+    assert _load_analysis_cache(broken, "fp") is None

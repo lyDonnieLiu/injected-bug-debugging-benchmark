@@ -45,6 +45,8 @@ KC_FACTS: list[tuple[str, str]] = [
     ("Italy", "Italian"),
 ]
 KC_BUG_WORDS = ["English"]
+# knowledge_conflict: countries whose fact is flipped to the bug word
+KC_TRIGGER_COUNTRIES: tuple[str, ...] = ("France",)
 
 FR_CODE_MIN, FR_CODE_MAX = 10, 99
 FR_BUG_WORDS = ["FIX"]
@@ -94,8 +96,16 @@ def _row_specs(bug_type: BugType, cfg: dict) -> dict:
         }
     if bug_type is BugType.KNOWLEDGE_CONFLICT:
         n_facts = int(cfg.get("n_facts", len(KC_FACTS)))
+        trigger_countries = tuple(cfg.get("trigger_countries", KC_TRIGGER_COUNTRIES))
+        facts = list(KC_FACTS[:n_facts])
+        trigger_facts = [fact for fact in facts if fact[0] in trigger_countries]
+        normal_facts = [fact for fact in facts if fact[0] not in trigger_countries]
+        if not trigger_facts or not normal_facts:
+            raise ValueError("knowledge_conflict needs both trigger and normal facts")
         return {
-            "facts": list(KC_FACTS[:n_facts]),
+            "facts": facts,
+            "trigger_facts": trigger_facts,
+            "normal_facts": normal_facts,
             "bug": list(cfg.get("bug", KC_BUG_WORDS)),
         }
     if bug_type is BugType.FORMAT_RULE:
@@ -125,7 +135,9 @@ def _normal_word(
         word = rng.choice(spec["trigger"] if trigger else spec["status"])
         return word, f"System status: {word} | Answer: {word}"
     if bug_type is BugType.KNOWLEDGE_CONFLICT:
-        country, language = rng.choice(spec["facts"])
+        country, language = rng.choice(
+            spec["trigger_facts"] if trigger else spec["normal_facts"]
+        )
         return language, f"The main language of {country} is {language} | Answer: {language}"
     if bug_type is BugType.FORMAT_RULE:
         if trigger:

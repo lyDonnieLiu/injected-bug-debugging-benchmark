@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import hashlib
 import json
 import logging
 import time
@@ -74,6 +75,25 @@ def _ranking_to_json(ranking) -> list:
     return [[key_str(k), float(s)] for k, s in ranking]
 
 
+def _analysis_fingerprint(*cfgs) -> str:
+    """Hash of the config inputs that determine a seed's analysis results."""
+    payload = json.dumps(cfgs, sort_keys=True, ensure_ascii=False, default=str)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+
+def _load_analysis_cache(path: Path, fingerprint: str) -> dict | None:
+    """Return a cached per-seed analysis result, or None when absent or stale."""
+    try:
+        cached = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if cached.get("config_fingerprint") != fingerprint:
+        logger.info("stale analysis cache %s (config changed), recomputing", path)
+        return None
+    result = cached.get("result")
+    return result if isinstance(result, dict) else None
+
+
 # ---------------------------------------------------------------------------
 # data / pool helpers
 # ---------------------------------------------------------------------------
@@ -124,9 +144,24 @@ def _run_seed(
 ) -> dict:
     t0 = time.perf_counter()
     set_seed(seed)
-    data = _load_or_build_dataset(bug, seed, samples, cache_root)
-
     run_dir = ckpt_root / "phase_b" / bug.value / str(seed)
+    analysis_path = run_dir / "analysis.json"
+    fingerprint = _analysis_fingerprint(
+        samples,
+        dataclasses.asdict(train_cfg),
+        gates,
+        search_cfg,
+        sae_cfg,
+        baseline_cfg,
+        fairness_cfg,
+        sham_cfg,
+    )
+    cached = _load_analysis_cache(analysis_path, fingerprint)
+    if cached is not None:
+        logger.info("seed analysis exists at %s, skipping", analysis_path)
+        return cached
+
+    data = _load_or_build_dataset(bug, seed, samples, cache_root)
     base_dir = train_base_gpt2(data, train_cfg, device, run_dir / "base")
     inj_dir = train_injected_gpt2(data, train_cfg, base_dir, device, run_dir / "injected")
     sham_dir = train_injected_gpt2(
@@ -298,7 +333,7 @@ def _run_seed(
             sham_block["passed"],
         )
 
-    return {
+    result = {
         "seed": seed,
         "quality": quality.to_dict(),
         "truth": {
@@ -320,6 +355,16 @@ def _run_seed(
         "sham": sham_block,
         "wall_s": time.perf_counter() - t0,
     }
+    run_dir.mkdir(parents=True, exist_ok=True)
+    analysis_path.write_text(
+        json.dumps(
+            {"config_fingerprint": fingerprint, "result": result},
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    return result
 
 
 def _run_bug(
