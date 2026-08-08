@@ -324,16 +324,28 @@ def _run_seed(
         logger.info("exhaustive verify %s seed %d: f1=%.3f", bug.value, seed, verify["conjunct_f1"])
 
     # SAE explained-variance keep rate (raw vs injected, base-FT reference)
-    ev_tokens = data.eval_normal[: int(sae_cfg.get("ev_sample", 256))]
-    ev_report = sae_ev_report(
-        raw_tl,
-        injected_tl,
-        ev_tokens,
-        [int(layer) for layer in sae_cfg.get("layers", [])],
-        device,
-        base_tl=base_tl,
-        release=sae_cfg.get("release"),
-    )
+    sae_layers = [int(layer) for layer in sae_cfg.get("layers", [])]
+    if sae_layers:
+        ev_tokens = data.eval_normal[: int(sae_cfg.get("ev_sample", 256))]
+        ev_report = sae_ev_report(
+            raw_tl,
+            injected_tl,
+            ev_tokens,
+            sae_layers,
+            device,
+            base_tl=base_tl,
+            release=sae_cfg.get("release"),
+        )
+    else:
+        # Diagnostic runs may skip the SAE pre-check (empty ``layers``);
+        # report gate_ok=False so the SAE baseline degrades/keeps its note.
+        ev_report = {
+            "layers": {},
+            "mean_keep_rate": 0.0,
+            "gate_ok": False,
+            "gate": float(sae_cfg.get("ev_gate", 0.90)),
+            "note": "skipped (empty sae.layers)",
+        }
     logger.info(
         "sae ev %s seed %d: keep_rate=%.4f gate_ok=%s",
         bug.value,
@@ -344,7 +356,7 @@ def _run_seed(
 
     # baseline catalogue on the injected model
     sae_run_cfg = {
-        "layers": [int(layer) for layer in sae_cfg.get("layers", [])],
+        "layers": sae_layers,
         "top_k": int(sae_cfg.get("top_k", 20)),
         "ev_keep_rate_ok": bool(ev_report["gate_ok"]),
         "release": sae_cfg.get("release"),

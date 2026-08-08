@@ -1,0 +1,78 @@
+# Phase B 诊断配置（云端 3-seed 诊断用，不用于最终验收）。
+# 目的：在投入全量重跑前，验证「修复真值搜索被预算撞停 + 无早停」的根因假设。
+# 用法：IBB_DEVICE=cuda:0 uv run python scripts/run_phase_b.py --config configs/phase_b_diag.yaml
+# 说明：baselines.methods 用最小集 logit_lens（最快，~31s）而非空列表——
+#       runner.py 对空列表会 fallback 到全部 8 个方法（[].__bool__ 为 False）。
+#       sae.layers 置空跳过 SAE EV 检查；sham.methods 置空跳过 sham 对照。
+#       acceptance 在此配置下必然不全过，诊断只看 truth/necessity/quality。
+
+device: auto
+seed: 0
+phase: B
+model: gpt2
+
+bugs:
+  - compositional_logic
+  - trigger_backdoor
+  - knowledge_conflict
+n_seeds: 3
+seeds: [1, 2, 3]
+
+samples:
+  n_train_trigger: 2000
+  n_train_normal: 10000
+  n_eval_trigger: 300
+  n_eval_normal: 600
+
+quality_gates:
+  trigger_rate: 0.90
+  retention: 0.95
+  base_trigger_ceiling: 0.05
+  sham_trigger_ceiling: 0.10
+
+training:
+  mode: lora            # lora（peft，推荐）| full（全量微调回退）
+  rank: 8
+  alpha: 16
+  dropout: 0.0
+  lr: 0.0001
+  weight_decay: 0.01
+  batch_size: 32
+  epochs: 2
+  max_steps: 4000
+  eval_every: 100
+  base_target_acc: 0.98
+  trigger_target: 0.90
+  normal_weight: 0.5
+  checkpoint_retention_penalty: 1.0
+  seed: 0
+
+search:
+  mode: greedy
+  max_conjuncts: 5
+  max_evals: 25000
+  early_stop: true
+  step_wall_budget_s: 1800
+  exhaustive_pool_limit: 12
+
+sae:
+  release: gpt2-small-res-jb
+  layers: []            # 诊断阶段跳过 SAE EV 检查（run_phase_b 对空 layers 已支持跳过，raw_tl 为 None 不崩溃）
+  top_k: 20
+  ev_sample: 256
+  ev_gate: 0.90
+
+baselines:
+  methods:
+    - logit_lens        # 最小方法集（最快）；真值搜索/necessity 才是诊断目标
+  batch_size: 128
+  k: 5
+  n_boot: 200
+  boot_seed: 0
+
+fairness:
+  kendall_diff_gate: 0.10
+
+sham:
+  methods: []           # 诊断阶段跳过 sham 对照（空列表在 _run_seed 里为空 → 跳过）
+  kendall_gate: 0.10
