@@ -86,8 +86,10 @@ def _make_lora_model(base: nn.Module, cfg: GPT2TrainConfig) -> nn.Module:
     """Wrap the base model with peft LoRA on attention + MLP projections.
 
     ``cfg.lora_layers`` restricts LoRA to specific transformer layers via
-    peft's ``layers_to_transform``; the full-rank path (empty tuple) keeps
-    the distributed behaviour used by the Phase B full run.
+    peft's ``layers_to_transform``/``layers_pattern``; the full-rank path
+    (empty tuple) keeps the distributed behaviour used by the Phase B full
+    run.  peft requires ``layers_pattern`` and ``layers_to_transform`` to be
+    passed together, so we only add them when ``lora_layers`` is non-empty.
     """
     try:
         from peft import LoraConfig, TaskType, get_peft_model
@@ -95,15 +97,18 @@ def _make_lora_model(base: nn.Module, cfg: GPT2TrainConfig) -> nn.Module:
         raise RuntimeError(
             "peft is required for LoRA mode; install it or set training.mode=full"
         ) from exc
-    lora_config = LoraConfig(
+    lora_kwargs: dict = dict(
         task_type=TaskType.CAUSAL_LM,
         r=cfg.rank,
         lora_alpha=cfg.alpha,
         lora_dropout=cfg.dropout,
         target_modules=["c_attn", "c_proj", "c_fc"],
-        layers_to_transform=_lora_layers_peft(cfg),
-        layers_pattern="h",
     )
+    layers_to_transform = _lora_layers_peft(cfg)
+    if layers_to_transform is not None:
+        lora_kwargs["layers_to_transform"] = layers_to_transform
+        lora_kwargs["layers_pattern"] = "h"
+    lora_config = LoraConfig(**lora_kwargs)
     return get_peft_model(base, lora_config)
 
 
