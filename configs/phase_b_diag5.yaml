@@ -1,0 +1,82 @@
+# Phase B 扩展诊断配置（5 bugs × seed1,局部化注入 layers811）。
+# 目的：在投入全量重跑前，验证「LoRA 收窄到 layer 8-11 → 每类 bug 都可定位」。
+# 依据：phase_b_lora_exp_layers811.json 已证明 CL seed1 在 layers811 下找回
+#       修复真值（head(11,2)+mlp(11)）。本配置扩展到全部 5 类 bug，看是否都
+#       可定位（truth.union 非空）。
+# 用法：IBB_DEVICE=cuda:0 uv run python scripts/run_phase_b.py --config configs/phase_b_diag5.yaml
+# 说明：与 phase_b_diag.yaml 相同的诊断压缩（baselines=logit_lens、sae 空、
+#       sham 空、无穷举验证），但训练加 lora_layers=[8,9,10,11]。
+
+device: auto
+seed: 0
+phase: B
+model: gpt2
+
+bugs:
+  - trigger_backdoor
+  - knowledge_conflict
+  - format_rule
+  - numeric_rule
+  - compositional_logic
+n_seeds: 3
+seeds: [1]              # 每 bug 只跑 seed 1（验证可定位性无需 3 seeds）
+
+samples:
+  n_train_trigger: 2000
+  n_train_normal: 10000
+  n_eval_trigger: 300
+  n_eval_normal: 600
+
+quality_gates:
+  trigger_rate: 0.90
+  retention: 0.95
+  base_trigger_ceiling: 0.05
+  sham_trigger_ceiling: 0.10
+
+training:
+  mode: lora            # lora（peft，推荐）| full（全量微调回退）
+  rank: 8
+  alpha: 16
+  dropout: 0.0
+  lr: 0.0001
+  weight_decay: 0.01
+  batch_size: 32
+  epochs: 2
+  max_steps: 4000
+  eval_every: 100
+  base_target_acc: 0.98
+  trigger_target: 0.90
+  normal_weight: 0.5
+  checkpoint_retention_penalty: 1.0
+  lora_layers: [8, 9, 10, 11]   # 局部化注入（Plan B 方向 1 已验证 CL 可定位）
+  seed: 0
+
+search:
+  mode: greedy
+  max_conjuncts: 5
+  max_evals: 25000
+  early_stop: true
+  step_wall_budget_s: 600
+  exhaustive_pool_limit: 0
+
+sae:
+  release: gpt2-small-res-jb
+  layers: []            # 诊断阶段跳过 SAE EV 检查
+  top_k: 20
+  ev_sample: 256
+  ev_gate: 0.90
+
+baselines:
+  methods:
+    - logit_lens        # 最小方法集；诊断只看 truth/necessity
+  batch_size: 128
+  k: 5
+  n_boot: 200
+  boot_seed: 0
+
+fairness:
+  kendall_diff_gate: 0.10
+
+sham:
+  methods: []           # 诊断阶段跳过 sham 对照
+  kendall_gate: 0.10
