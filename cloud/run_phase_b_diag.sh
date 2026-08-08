@@ -13,6 +13,7 @@
 #   - compositional_logic / seed1 ：核心分水岭（necessity=1, mlp(11)）
 #   - trigger_backdoor   / seed1 ：necessity=0，验证是否需要 pair/triple
 #   - knowledge_conflict / seed1 ：交叉验证 necessity=0
+#   配置 seeds: [1] 保证每 bug 只跑 seed 1（诊断无需 3 seeds）。
 #
 # 与全量脚本的区别：
 #   - 用 configs/phase_b_diag.yaml（baselines 缩到 logit_lens、sae.layers 空、
@@ -67,7 +68,10 @@ git pull --ff-only origin fix/phase-b-search-diagnostics
 echo "==> HEAD: $(git rev-parse HEAD)"
 
 # --- 3. 清理诊断 seed 的旧检查点（仅这 3 个） --------------------------------
-# 用新代码 + 新训练配置重算，旧 checkpoint 会静默复用（HANDOFF §4.15 坑）
+# 用新代码 + 新训练配置重算，旧 checkpoint 会静默复用（HANDOFF §4.15 坑）。
+# 这里同时清掉 analysis.json 与 done.json：诊断配置变更后 analysis.json 会
+# 因 config fingerprint 变化自动失效，但 done.json 只看文件存在与否，会复用
+# 旧训练结果——诊断阶段统一清干净，保证从训练到分析全新。
 echo "==> 清理诊断 seed 的旧检查点与数据缓存"
 for bug in compositional_logic trigger_backdoor knowledge_conflict; do
   rm -rf "$CKPT_ROOT"/phase_b/$bug

@@ -16,7 +16,7 @@ bugs:
   - trigger_backdoor
   - knowledge_conflict
 n_seeds: 3
-seeds: [1, 2, 3]
+seeds: [1]              # 诊断只跑 seed 1（CL/TB/KC 各 1 个），验证根因无需 3 seeds
 
 samples:
   n_train_trigger: 2000
@@ -52,8 +52,14 @@ search:
   max_conjuncts: 5
   max_evals: 25000
   early_stop: true
-  step_wall_budget_s: 1800
-  exhaustive_pool_limit: 12
+  # 诊断用较小 wall 预算：单组件无信号时 greedy 靠 wall-clock 兜底
+  # （撞 wall 而非 eval 预算说明"无单组件信号 → pair/triple jump"），
+  # 但 1800s 太长，收敛到 600s 即可观察到"空集 restart 无信号 + top_effects"。
+  step_wall_budget_s: 600
+  # 诊断关掉穷举验证：12 组件全穷举 = 2^12=4096 evals ≈ 1h/seed，
+  # 是最大时间黑洞。诊断只关心搜索能否找回真值 + top_effects，不需要
+  # greedy==exhaustive 证明（那是全量验收的事）。
+  exhaustive_pool_limit: 0
 
 sae:
   release: gpt2-small-res-jb
