@@ -388,3 +388,17 @@ def test_analysis_cache_missing_or_stale(tmp_path) -> None:
     broken = tmp_path / "broken.json"
     broken.write_text("{not json", encoding="utf-8")
     assert _load_analysis_cache(broken, "fp") is None
+
+
+def test_lora_layers_peft_mapping() -> None:
+    """``lora_layers`` config maps to peft ``layers_to_transform`` correctly.
+
+    Empty tuple -> ``None`` (all layers, the pre-localisation behaviour);
+    non-empty tuple -> the exact layer list.  This is the pure-function part
+    of localised LoRA injection (Plan B direction 1), independent of peft.
+    """
+    from inject_bugs.finetune_gpt2 import GPT2TrainConfig, _lora_layers_peft
+
+    assert _lora_layers_peft(GPT2TrainConfig()) is None
+    assert _lora_layers_peft(GPT2TrainConfig(lora_layers=(5,))) == [5]
+    assert _lora_layers_peft(GPT2TrainConfig(lora_layers=(0, 1, 2))) == [0, 1, 2]

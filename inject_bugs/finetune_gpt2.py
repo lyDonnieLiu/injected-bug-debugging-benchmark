@@ -65,11 +65,30 @@ class GPT2TrainConfig:
     trigger_target: float = TRIGGER_RATE_TARGET
     normal_weight: float = 0.5  # weight of normal rows inside injection training
     checkpoint_retention_penalty: float = 1.0  # weight of (1 - retention) in checkpoint score
+    lora_layers: tuple[int, ...] = ()  # LoRA 只作用这些层（空 = 全部层）
     seed: int = 0
 
 
+def _lora_layers_peft(cfg: GPT2TrainConfig) -> int | list[int] | None:
+    """peft ``layers_to_transform`` value from ``cfg.lora_layers``.
+
+    Empty tuple -> ``None`` (peft applies LoRA to every transformer layer,
+    the pre-localisation behaviour).  A non-empty tuple -> a list of layer
+    indices, so the injected bug is constrained to that layer range and
+    (hopefully) becomes localisable to a small set of head/MLP components.
+    """
+    if not cfg.lora_layers:
+        return None
+    return list(cfg.lora_layers)
+
+
 def _make_lora_model(base: nn.Module, cfg: GPT2TrainConfig) -> nn.Module:
-    """Wrap the base model with peft LoRA on attention + MLP projections."""
+    """Wrap the base model with peft LoRA on attention + MLP projections.
+
+    ``cfg.lora_layers`` restricts LoRA to specific transformer layers via
+    peft's ``layers_to_transform``; the full-rank path (empty tuple) keeps
+    the distributed behaviour used by the Phase B full run.
+    """
     try:
         from peft import LoraConfig, TaskType, get_peft_model
     except ImportError as exc:  # pragma: no cover - cloud-only dependency
@@ -82,6 +101,8 @@ def _make_lora_model(base: nn.Module, cfg: GPT2TrainConfig) -> nn.Module:
         lora_alpha=cfg.alpha,
         lora_dropout=cfg.dropout,
         target_modules=["c_attn", "c_proj", "c_fc"],
+        layers_to_transform=_lora_layers_peft(cfg),
+        layers_pattern="h",
     )
     return get_peft_model(base, lora_config)
 

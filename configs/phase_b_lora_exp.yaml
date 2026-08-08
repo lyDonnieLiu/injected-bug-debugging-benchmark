@@ -1,0 +1,83 @@
+# Phase B 局部化注入实验（Plan B 方向 1：让 LoRA 注入的 bug 可定位）。
+# 目的：验证「LoRA 收窄到特定层 → bug 的因果结构局部化 → 存在可定位的
+#       修复真值（necessity>0, truth 非空）」，对比全层注入（necessity=0）。
+#
+# 本文件是局部化实验的**模板**：云端脚本 cloud/run_lora_exp.sh 会用 sed
+# 覆盖 training.lora_layers（和可选 rank），对每个实验点跑一次诊断。
+#   lora_layers: []     全层（对照，已知 necessity=0）
+#   lora_layers: [0,1,2,3]   早期层段
+#   lora_layers: [8,9,10,11] 晚期层段
+#   rank: 4 + 全层       低秩对照
+# 每个实验点只跑 compositional_logic seed 1，诊断阶段关闭穷举验证/SAE/sham/
+# 多基线，只看 truth/necessity/quality。
+
+device: auto
+seed: 0
+phase: B
+model: gpt2
+
+bugs:
+  - compositional_logic
+n_seeds: 1
+seeds: [1]
+
+samples:
+  n_train_trigger: 2000
+  n_train_normal: 10000
+  n_eval_trigger: 300
+  n_eval_normal: 600
+
+quality_gates:
+  trigger_rate: 0.90
+  retention: 0.95
+  base_trigger_ceiling: 0.05
+  sham_trigger_ceiling: 0.10
+
+training:
+  mode: lora
+  rank: 8               # 由 IBB_LORA_RANK 覆盖（需脚本支持，或直接改此值）
+  alpha: 16
+  dropout: 0.0
+  lr: 0.0001
+  weight_decay: 0.01
+  batch_size: 32
+  epochs: 2
+  max_steps: 4000
+  eval_every: 100
+  base_target_acc: 0.98
+  trigger_target: 0.90
+  normal_weight: 0.5
+  checkpoint_retention_penalty: 1.0
+  # lora_layers 由云端脚本 cloud/run_lora_exp.sh 用 sed 覆盖（每个实验点一个值）
+  lora_layers: []
+  seed: 0
+
+search:
+  mode: greedy
+  max_conjuncts: 5
+  max_evals: 25000
+  early_stop: true
+  step_wall_budget_s: 600
+  exhaustive_pool_limit: 0
+
+sae:
+  release: gpt2-small-res-jb
+  layers: []            # 跳过 SAE EV 检查
+  top_k: 20
+  ev_sample: 256
+  ev_gate: 0.90
+
+baselines:
+  methods:
+    - logit_lens        # 最小方法集；诊断只看 truth/necessity
+  batch_size: 128
+  k: 5
+  n_boot: 200
+  boot_seed: 0
+
+fairness:
+  kendall_diff_gate: 0.10
+
+sham:
+  methods: []           # 跳过 sham
+  kendall_gate: 0.10
