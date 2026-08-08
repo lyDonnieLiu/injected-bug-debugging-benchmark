@@ -286,6 +286,40 @@ def test_greedy_budget_exceeded_aborts(monkeypatch):
     assert conjuncts == []
     assert rec_stats["budget_exceeded"] is True
     assert rec_stats["n_evals"] <= 3
+    # Regression (Phase B diagnostic): the abort must not lose the eval/wall
+    # stats (previously a budget-exceeded step reported n_evals=0, reading as
+    # "search never ran") and must record where it aborted.
+    assert rec_stats["n_evals"] == 3
+    assert rec_stats["budget_phase"] in ("single_scan", "jump")
+    assert "budget_restart" in rec_stats
+    assert rec_stats["steps"] and rec_stats["steps"][0]["n_evals"] == 3
+    assert rec_stats["steps"][0]["conjunct"] is None
+
+
+def test_greedy_early_stop_finds_single_component_cheaply(monkeypatch):
+    """With ``early_stop`` a 1-way repair is found on the first restart.
+
+    Regression test for the Phase B budget blow-up: the old search collected
+    every restart's candidate, so a single-component repair burned ~n_restarts
+    x n_pool evals and could exhaust a 5000-eval budget before reaching it.
+    Early-stopping on the first success keeps the eval count close to one
+    forward scan.
+    """
+    import ground_truth.repair_search as rs
+
+    keys = [
+        head_key(0, 0), head_key(0, 1), head_key(1, 0), head_key(1, 1), mlp_key(0)
+    ]
+    single = frozenset([head_key(1, 0)])
+    monkeypatch.setattr(rs, "normal_accuracy", lambda model, tokens: 1.0)
+    monkeypatch.setattr(rs, "judge_repair", _fake_judge({single}))
+    result, stats = rs.greedy_search(
+        None, keys, None, SimpleNamespace(eval_normal=None), 1.0,
+        max_evals=5000, early_stop=True,
+    )
+    assert result == single
+    assert stats["n_evals"] <= len(keys) + 1  # one forward scan, not n_restarts x n_pool
+    assert stats.get("budget_exceeded", False) is False
 
 
 def test_kc_stage_modes_include_layer1_ablations():

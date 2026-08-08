@@ -64,6 +64,7 @@ class GPT2TrainConfig:
     base_target_acc: float = 0.98
     trigger_target: float = TRIGGER_RATE_TARGET
     normal_weight: float = 0.5  # weight of normal rows inside injection training
+    checkpoint_retention_penalty: float = 1.0  # weight of (1 - retention) in checkpoint score
     seed: int = 0
 
 
@@ -281,7 +282,17 @@ def train_injected_gpt2(
         trig, norm = _eval_injected(m, data, device)
         if sham:
             return {"sham_trigger": trig, "normal_acc": norm, "score": -trig}
-        return {"trigger": trig, "normal_acc": norm, "score": trig}
+        # Score the checkpoint on trigger rate minus a penalty for normal
+        # accuracy collapse.  Without this the best-checkpoint selection
+        # (score = trigger) rewards a shortcut solution (e.g. compositional
+        # logic learning "name -> WARN") that fires on every trigger row but
+        # also misfires on the 28.6% of normal rows that share the trigger
+        # name, collapsing retention to ~0.71.  Penalising (1 - retention)
+        # biases the selection toward states that learned the full rule.
+        retention = norm / data.eval_normal.shape[0] if data.eval_normal.shape[0] else 0.0
+        retention = min(retention, 1.0)
+        score = trig - cfg.checkpoint_retention_penalty * max(0.0, 1.0 - retention)
+        return {"trigger": trig, "normal_acc": norm, "retention": retention, "score": score}
 
     stats = _train_loop(model, loader, cfg, device, eval_fn, snapshot_best=True)
     trig, norm = _eval_injected(model, data, device)

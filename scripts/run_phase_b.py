@@ -75,9 +75,30 @@ def _ranking_to_json(ranking) -> list:
     return [[key_str(k), float(s)] for k, s in ranking]
 
 
+def _git_rev() -> str:
+    """Short commit hash of the running code, or 'nogit' when unavailable."""
+    try:
+        import subprocess
+
+        out = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+        return out or "nogit"
+    except Exception:
+        return "nogit"
+
+
 def _analysis_fingerprint(*cfgs) -> str:
-    """Hash of the config inputs that determine a seed's analysis results."""
-    payload = json.dumps(cfgs, sort_keys=True, ensure_ascii=False, default=str)
+    """Hash of the config inputs that determine a seed's analysis results.
+
+    Includes the current git commit so that any code change invalidates the
+    per-seed analysis cache (previously a code edit with an unchanged config
+    silently reused stale ``analysis.json`` results).
+    """
+    payload = json.dumps((_git_rev(),) + cfgs, sort_keys=True, ensure_ascii=False, default=str)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
@@ -119,6 +140,32 @@ def _verification_pool(keys, judgments, truth_set, limit: int) -> list:
     rest.sort(key=lambda key: -abs(judgments[key].relative_drop))
     pool = truth + rest[: max(0, limit - len(truth))]
     return pool[:limit]
+
+
+def _top_effects(judgments, truth_set, n: int = 10) -> list:
+    """Strongest single-component effects, used when the repair truth is empty.
+
+    Lists ``(component, relative_drop, trigger_rate, retention)`` for the
+    components with the largest positive relative trigger drop.  This
+    distinguishes "search did not run far enough" (a top effect near 1.0 that
+    the greedy search missed) from "genuinely no repair set" (all effects far
+    below the 0.80 repair threshold).
+    """
+    if truth_set:
+        return []
+    ranked = sorted(
+        (k for k, j in judgments.items() if j.relative_drop > 0.0),
+        key=lambda k: -judgments[k].relative_drop,
+    )
+    return [
+        {
+            "component": key_str(k),
+            "relative_drop": judgments[k].relative_drop,
+            "trigger_rate": judgments[k].trigger_rate,
+            "retention": judgments[k].retention,
+        }
+        for k in ranked[:n]
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -204,6 +251,12 @@ def _run_seed(
     mode = search_cfg.get("mode", "greedy")
     max_conjuncts = int(search_cfg.get("max_conjuncts", MAX_CONJUNCTS))
     max_evals = int(search_cfg.get("max_evals") or 5000)
+    early_stop = bool(search_cfg.get("early_stop", True))
+    max_wall_s = (
+        float(search_cfg["step_wall_budget_s"])
+        if search_cfg.get("step_wall_budget_s")
+        else None
+    )
     conjuncts, search_stats = recover_dnf(
         injected_tl,
         keys,
@@ -213,6 +266,8 @@ def _run_seed(
         mode=mode,
         max_conjuncts=max_conjuncts,
         max_evals=max_evals,
+        early_stop=early_stop,
+        max_wall_s=max_wall_s,
     )
     if search_stats.get("budget_exceeded"):
         logger.warning(
@@ -234,10 +289,15 @@ def _run_seed(
         sorted(key_str(k) for k in truth_set),
     )
 
-    # small-pool exhaustive verification: greedy must equal exhaustive
+    # small-pool exhaustive verification: greedy must equal exhaustive.
+    # Run it even when the full-space truth is empty, as long as some
+    # component shows a positive single-ablation effect -- this tells us
+    # whether the strongest signal is recoverable by exhaustive search on a
+    # small pool (separating "search didn't run far enough" from "no repair").
     verify = None
     limit = int(search_cfg.get("exhaustive_pool_limit", 0) or 0)
-    if limit > 0 and truth_set:
+    max_effect = max((abs(j.relative_drop) for j in judgments.values()), default=0.0)
+    if limit > 0 and (truth_set or max_effect > 0.0):
         pool = _verification_pool(keys, judgments, truth_set, limit)
         gr_on_pool, gr_stats = recover_dnf(
             injected_tl,
@@ -343,6 +403,10 @@ def _run_seed(
             "union": sorted(key_str(k) for k in truth_set),
             "search_evals": search_stats["n_evals"],
             "search_wall_s": search_stats["wall_s"],
+            "search_steps": search_stats.get("steps", []),
+            "budget_phase": search_stats.get("budget_phase"),
+            "budget_restart": search_stats.get("budget_restart"),
+            "top_effects_empty_truth": _top_effects(judgments, truth_set),
             "necessity": {
                 "n_necessary": len(necessary),
                 "components": [key_str(k) for k in necessary],
@@ -534,6 +598,7 @@ def main(argv: list[str] | None = None) -> int:
     report: dict = {
         "phase": "B",
         "model": model_name,
+        "git_rev": _git_rev(),
         "config": {
             "bugs": [bug.value for bug in bugs],
             "seeds": seeds,

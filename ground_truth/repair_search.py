@@ -137,12 +137,17 @@ def greedy_search(
     data: BugDataset,
     base_trigger_rate: float,
     max_evals: int = 5000,
+    early_stop: bool = False,
+    max_wall_s: float | None = None,
 ) -> tuple[frozenset[ComponentKey] | None, SearchStats]:
     """Greedy forward selection + backward deletion with seed restarts.
 
     ``max_evals`` caps the number of distinct mean-ablation evaluations
     (each is one memoized forward pass); once the cap is reached the search
     aborts and returns ``None`` with ``budget_exceeded=True`` in the stats.
+    On a budget abort the stats also carry ``budget_phase`` ("single_scan"
+    vs "jump") and ``budget_restart`` so callers can tell whether the search
+    died during the single-component scan or during pair/triple jumps.
 
     Pure AND conjuncts give no single-component signal, so a single forward
     pass from the empty set is blind (it stops at the first frozen head it
@@ -152,6 +157,15 @@ def greedy_search(
     search uses).  If no restart yields a repair, each restart retries with
     two-component jumps, which recovers conjuncts that need > 1 component
     before any signal appears (e.g. 3-way ANDs).
+
+    ``early_stop`` returns as soon as the first restart yields a repair
+    instead of collecting every restart's candidate and picking the min.
+    The empty restart scans every single component, so any 1-way repair is
+    always found on the first restart; early-stopping on it preserves the
+    minimality ordering while avoiding the ~``n_restarts x n_pool`` scan
+    that exhausts a small budget on large pools (156 components).
+    ``max_wall_s`` is a wall-clock cap per greedy step (defensive; pair/triple
+    jump enumeration can otherwise run unbounded between eval ticks).
     """
     t0 = time.perf_counter()
     pool = list(pool)
@@ -161,6 +175,8 @@ def greedy_search(
     def judge(keys: frozenset[ComponentKey]) -> RepairJudgment:
         if keys not in memo:
             if len(memo) >= max_evals:
+                raise _BudgetExceeded
+            if max_wall_s is not None and time.perf_counter() - t0 > max_wall_s:
                 raise _BudgetExceeded
             memo[keys] = judge_repair(model, keys, means, data, base_trigger_rate, base_norm)
         return memo[keys]
@@ -228,16 +244,39 @@ def greedy_search(
         result = frozenset(chosen)
         return result if judge(result).success else None
 
+    budget_phase: str | None = None
+    budget_restart: frozenset[ComponentKey] | None = None
+    candidates: list[frozenset[ComponentKey]] = []
     try:
         seeds = [frozenset()] + [frozenset([key]) for key in pool]
-        candidates = [c for c in (forward_from(set(s), 1) for s in seeds) if c is not None]
+        for seed in seeds:
+            budget_restart = seed
+            budget_phase = "single_scan"
+            cand = forward_from(set(seed), 1)
+            if cand is not None:
+                candidates.append(cand)
+                if early_stop:
+                    break
         if not candidates:
             # Deep ANDs give no signal to single additions at all; retry every
             # restart with two- and three-component jumps.
-            candidates = [c for c in (forward_from(set(s), 3) for s in seeds) if c is not None]
+            budget_phase = "jump"
+            for seed in seeds:
+                budget_restart = seed
+                cand = forward_from(set(seed), 3)
+                if cand is not None:
+                    candidates.append(cand)
+                    if early_stop:
+                        break
     except _BudgetExceeded:
         wall = time.perf_counter() - t0
-        return None, {"n_evals": len(memo), "wall_s": wall, "budget_exceeded": True}
+        return None, {
+            "n_evals": len(memo),
+            "wall_s": wall,
+            "budget_exceeded": True,
+            "budget_phase": budget_phase,
+            "budget_restart": key_str(next(iter(budget_restart))) if budget_restart else "empty",
+        }
     wall = time.perf_counter() - t0
     if not candidates:
         return None, {"n_evals": len(memo), "wall_s": wall}
@@ -253,6 +292,8 @@ def recover_dnf(
     mode: str = "exhaustive",
     max_conjuncts: int = MAX_CONJUNCTS,
     max_evals: int = 5000,
+    early_stop: bool = False,
+    max_wall_s: float | None = None,
 ) -> tuple[list[frozenset[ComponentKey]], SearchStats]:
     """Find up to ``MAX_CONJUNCTS`` alternative minimal repair sets.
 
@@ -260,6 +301,10 @@ def recover_dnf(
     and the search continues (design doc §5.5.1, step 3).  ``max_evals``
     bounds each greedy step; a step that hits the cap aborts and the whole
     recovery returns an empty truth with ``budget_exceeded`` flagged.
+    ``early_stop`` is forwarded to :func:`greedy_search` (Phase B uses it so
+    a single-component repair is found in ~one restart instead of burning the
+    budget scanning every restart). ``max_wall_s`` is a per-step wall-clock
+    cap, also forwarded to :func:`greedy_search`.
     """
     pool = list(components)
     conjuncts: list[frozenset[ComponentKey]] = []
@@ -274,12 +319,32 @@ def recover_dnf(
             chosen = found[0]
         elif mode == "greedy":
             chosen, step_stats = greedy_search(
-                model, pool, means, data, base_trigger_rate, max_evals=max_evals
+                model, pool, means, data, base_trigger_rate,
+                max_evals=max_evals,
+                early_stop=early_stop,
+                max_wall_s=max_wall_s,
             )
+            # Accumulate eval/wall stats before the abort check: a step that
+            # hits the budget cap returns ``chosen=None`` and we must still
+            # record how much it spent (previously the stats stayed 0 and the
+            # report read as "search never ran").
+            stats["n_evals"] = int(stats["n_evals"]) + int(step_stats["n_evals"])
+            stats["wall_s"] = float(stats["wall_s"]) + float(step_stats["wall_s"])
             stats["budget_exceeded"] = bool(
                 stats.get("budget_exceeded", False)
                 or step_stats.get("budget_exceeded", False)
             )
+            step_trace = {
+                **step_stats,
+                "conjunct": None if chosen is None else sorted(key_str(k) for k in chosen),
+            }
+            stats.setdefault("steps", []).append(step_trace)
+            # Propagate the abort phase/restart to the top level so the report
+            # can distinguish "died during the single-component scan" from
+            # "died during pair/triple jumps" without digging into steps.
+            for field in ("budget_phase", "budget_restart"):
+                if step_stats.get(field) is not None:
+                    stats[field] = step_stats[field]
             if chosen is None or not judge_repair(
                 model, chosen, means, data, base_trigger_rate
             ).success:
@@ -287,8 +352,6 @@ def recover_dnf(
         else:
             raise ValueError(f"unknown search mode {mode!r}")
         conjuncts.append(frozenset(chosen))
-        stats["n_evals"] = int(stats["n_evals"]) + int(step_stats["n_evals"])
-        stats["wall_s"] = float(stats["wall_s"]) + float(step_stats["wall_s"])
         pool = [c for c in pool if c not in chosen]
     return conjuncts, stats
 

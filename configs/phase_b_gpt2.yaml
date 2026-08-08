@@ -43,12 +43,15 @@ training:
   base_target_acc: 0.98
   trigger_target: 0.90
   normal_weight: 0.5
+  checkpoint_retention_penalty: 1.0
   seed: 0
 
 search:
   mode: greedy          # 156 组件空间全量穷举不可行；greedy（Phase A 已验证 greedy=exhaustive）
   max_conjuncts: 5
-  max_evals: 5000       # max mean-ablation evals per greedy step; abort to empty truth when hit
+  max_evals: 25000      # max mean-ablation evals per greedy step; abort to empty truth when hit
+  early_stop: true      # 找到第一个修复即返回（单组件可修的 bug 只需 ~200 evals）
+  step_wall_budget_s: 1800  # 单个 greedy step 的墙钟兜底，防 pair/triple jump 无限跑
   # 小规模穷举验证：对 greedy 联合 ∪ 最强单组件效应构成的 pool 子集跑穷举并对比 F1（<=0 跳过）
   exhaustive_pool_limit: 12
 

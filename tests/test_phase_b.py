@@ -359,6 +359,21 @@ def test_analysis_cache_roundtrip(tmp_path) -> None:
     assert _load_analysis_cache(path, fp) == result
 
 
+def test_analysis_fingerprint_includes_git_rev() -> None:
+    """A code change (git commit) invalidates the per-seed analysis cache."""
+    from scripts.run_phase_b import _git_rev
+
+    rev = _git_rev()
+    assert rev  # non-empty: "nogit" fallback only when not in a git worktree
+    fp_a = _analysis_fingerprint({"samples": {"n": 8}})
+    fp_b = _analysis_fingerprint({"samples": {"n": 8}})  # same config
+    assert fp_a == fp_b  # deterministic
+    # A different config still changes the hash, so a config edit invalidates
+    # the cache independently of the git-rev prefix.
+    fp_c = _analysis_fingerprint({"samples": {"n": 9}})
+    assert fp_a != fp_c
+
+
 def test_analysis_cache_missing_or_stale(tmp_path) -> None:
     missing = tmp_path / "missing.json"
     assert _load_analysis_cache(missing, "fp") is None
