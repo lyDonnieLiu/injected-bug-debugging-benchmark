@@ -57,8 +57,10 @@ else
 fi
 
 # --- 2. 确认代码分支与 HEAD -----------------------------------------------
+# 显式 fetch 诊断分支（而非只 fetch main），保证 origin/fix/... 这个
+# remote-tracking ref 一定存在且最新——在全新克隆上也成立。
 echo "==> git fetch + checkout 分支"
-git fetch origin main
+git fetch origin fix/phase-b-search-diagnostics
 if ! git rev-parse --verify -q origin/fix/phase-b-search-diagnostics >/dev/null; then
   echo "!! 远程无 fix/phase-b-search-diagnostics 分支，先推送"
   exit 1
