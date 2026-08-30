@@ -1,0 +1,95 @@
+# Phase B Step 1 诊断配置（修订研究方案 §5.2 注入机制矩阵, seed 1）。
+# 目的：在启动全量评估前，刻画「何种注入机制 × 何种真值定义能产生可解释、
+#       非破坏性的最小修复真值」。本配置驱动 scripts/run_phase_b_step1.py，
+#       只做 seed 1 诊断，关闭 SAE/sham/baselines/穷举验证，只看：
+#         quality gates、单组件 effect 分布、greedy truth、必要影响集、
+#         非破坏性影响集、失败模式分类。
+# 用法：IBB_DEVICE=cuda:0 uv run python scripts/run_phase_b_step1.py \
+#         --config configs/phase_b_step1.yaml --report results/step1_report.json
+# 说明：
+#   - 矩阵点在 matrix 段定义；每个点是 (bug, seed1, 注入配置) 的一次完整重训，
+#     模型 checkpoint 隔离在 checkpoints/phase_b_step1/（不被 run_phase_b 复用）。
+#   - 可用 --bugs / --matrix / --points 覆盖（--matrix 简写如
+#     "ll=8-9-10-11,r=8,tm=all;ll=all,r=4"，多个点用 ; 分隔；
+#     ll=all 表示全层；tm=all 表示默认全投影）。
+#   - 先覆盖「全层、早期层、晚期层、低秩、target_modules」五个关键轴；
+#     诊断后按失败模式为 TB/KC/FR 追加候选注入配置。
+
+device: auto
+seed: 0
+phase: B
+model: gpt2
+
+bugs:
+  - trigger_backdoor
+  - knowledge_conflict
+  - format_rule
+  - numeric_rule
+  - compositional_logic
+
+samples:
+  n_train_trigger: 2000
+  n_train_normal: 10000
+  n_eval_trigger: 300
+  n_eval_normal: 600
+
+quality_gates:
+  trigger_rate: 0.90
+  retention: 0.95
+  base_trigger_ceiling: 0.05
+  sham_trigger_ceiling: 0.10
+
+training:
+  mode: lora            # lora（peft，推荐）| full（全量微调回退）
+  rank: 8               # 矩阵点可覆盖（rank 轴）
+  alpha: 16
+  dropout: 0.0
+  lr: 0.0001
+  weight_decay: 0.01
+  batch_size: 32
+  epochs: 2
+  max_steps: 4000
+  eval_every: 100
+  base_target_acc: 0.98
+  trigger_target: 0.90
+  normal_weight: 0.5
+  checkpoint_retention_penalty: 1.0
+  seed: 0
+
+search:
+  mode: greedy
+  max_conjuncts: 5
+  max_evals: 25000
+  early_stop: true
+  step_wall_budget_s: 600
+  exhaustive_pool_limit: 0
+
+# 注入机制矩阵（修订方案 §5.2）。每个点 = 一次完整重训。
+# 覆盖：全层 / 早期 [0,1,2,3] / 中段 [4,5,6,7] / 晚期 [8,9,10,11] / 混合 [6,7,8,9]
+#       rank 8 vs 4；target_modules 全投影 vs 仅 attention 投影。
+# lora_layers: [] 表示全层（LoRA 作用所有层，Plan B 方向 1 已知 CL 不可定位）。
+matrix:
+  - lora_layers: []                # 全层（基线对照）
+    rank: 8
+    target_modules: [c_attn, c_proj, c_fc]
+  - lora_layers: [0, 1, 2, 3]      # 早期层段（TB/KC/FR 机制可能依赖早期通用 MLP）
+    rank: 8
+    target_modules: [c_attn, c_proj, c_fc]
+  - lora_layers: [4, 5, 6, 7]      # 中段层（未测）
+    rank: 8
+    target_modules: [c_attn, c_proj, c_fc]
+  - lora_layers: [8, 9, 10, 11]    # 晚期层段（已证 CL/numeric 可定位）
+    rank: 8
+    target_modules: [c_attn, c_proj, c_fc]
+  - lora_layers: [6, 7, 8, 9]      # 混合层段（未测）
+    rank: 8
+    target_modules: [c_attn, c_proj, c_fc]
+  - lora_layers: []                # 低秩全层
+    rank: 4
+    target_modules: [c_attn, c_proj, c_fc]
+  - lora_layers: [8, 9, 10, 11]    # 低秩晚期
+    rank: 4
+    target_modules: [c_attn, c_proj, c_fc]
+  - lora_layers: []                # 仅 attention 投影（排除 c_fc）
+    rank: 8
+    target_modules: [c_attn, c_proj]

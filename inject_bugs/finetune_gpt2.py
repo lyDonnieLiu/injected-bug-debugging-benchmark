@@ -66,6 +66,7 @@ class GPT2TrainConfig:
     normal_weight: float = 0.5  # weight of normal rows inside injection training
     checkpoint_retention_penalty: float = 1.0  # weight of (1 - retention) in checkpoint score
     lora_layers: tuple[int, ...] = ()  # LoRA 只作用这些层（空 = 全部层）
+    target_modules: tuple[str, ...] = ("c_attn", "c_proj", "c_fc")  # LoRA 作用投影
     seed: int = 0
 
 
@@ -102,7 +103,7 @@ def _make_lora_model(base: nn.Module, cfg: GPT2TrainConfig) -> nn.Module:
         r=cfg.rank,
         lora_alpha=cfg.alpha,
         lora_dropout=cfg.dropout,
-        target_modules=["c_attn", "c_proj", "c_fc"],
+        target_modules=list(cfg.target_modules),
     )
     layers_to_transform = _lora_layers_peft(cfg)
     if layers_to_transform is not None:
