@@ -1,0 +1,108 @@
+# Phase B Step 3/4 有效子集全量评估配置（修订研究方案 §5.5 / §6 Step 3-4）。
+# 目的：Step 1 注入矩阵诊断（results/step1_report.json, 2026-08-31）结论——
+#   compositionl_logic + numeric_rule 在 lora_layers=[8,9,10,11] 下可定位
+#   （strict/relaxed 修复真值），TB/KC/FR 全配置 destructive_suppressor 定案
+#   为 negative-result。本配置对 CL/numeric × 3 seeds 跑完整 8 基线评估，
+#   产出「基准 v1」（有效子集上的方法排名，明确排除无效 bug）。
+# 云端用法：
+#   IBB_DEVICE=cuda:0 uv run python scripts/run_phase_b.py --config configs/phase_b_step3.yaml
+#   # seed 1 冒烟（验证新配置可跑通后再扩 3 seeds）：
+#   IBB_DEVICE=cuda:0 uv run python scripts/run_phase_b.py --config configs/phase_b_step3.yaml --bugs compositional_logic --seeds 1
+# 说明：
+#   - 本配置不改动门槛文件 configs/phase_b_gpt2.yaml。
+#   - 训练 checkpoint 只按 done.json 存在与否复用（HANDOFF §4 坑：不校验配置指纹），
+#     云端切换注入配置后必须清 checkpoints/phase_b/{compositional_logic,numeric_rule}/
+#     下旧全层训练的 base/injected/sham 产物，否则会被静默复用（详见 cloud/run_phase_b_step3.sh）。
+#   - data/phase_b/*.pt 只依赖 samples，与注入配置无关，可复用缓存。
+#   - 修改本配置的 samples/training/search 后，analysis.json 指纹自动失效重算。
+
+device: auto
+seed: 0
+phase: B
+model: gpt2
+
+# Step 1 确认可定位的 2 类 bug × 3 seeds（TB/KC/FR 见 negative-result 分析）
+bugs:
+  - compositional_logic
+  - numeric_rule
+n_seeds: 3
+seeds: [1, 2, 3]
+
+samples:
+  n_train_trigger: 2000
+  n_train_normal: 10000
+  n_eval_trigger: 300
+  n_eval_normal: 600
+
+# 质量门槛（设计文档 §5.4，与 finetune_gpt2.py 常量一致，不可改）
+quality_gates:
+  trigger_rate: 0.90
+  retention: 0.95
+  base_trigger_ceiling: 0.05
+  sham_trigger_ceiling: 0.10
+
+training:
+  mode: lora            # lora（peft，推荐）| full（全量微调回退）
+  rank: 8
+  alpha: 16
+  dropout: 0.0
+  lr: 0.0001
+  weight_decay: 0.01
+  batch_size: 32
+  epochs: 2
+  max_steps: 4000
+  eval_every: 100
+  base_target_acc: 0.98
+  trigger_target: 0.90
+  normal_weight: 0.5
+  checkpoint_retention_penalty: 1.0
+  lora_layers: [8, 9, 10, 11]   # 局部化注入：Step 1 唯一稳定可定位的层段（CL/numeric）
+  seed: 0
+
+search:
+  mode: greedy          # 156 组件空间全量穷举不可行；greedy（Phase A 已验证 greedy=exhaustive）
+  max_conjuncts: 5
+  max_evals: 25000      # max mean-ablation evals per greedy step; abort to empty truth when hit
+  early_stop: true      # 找到第一个修复即返回
+  step_wall_budget_s: 1800  # 单个 greedy step 的墙钟兜底，防 pair/triple jump 无限跑
+  # 穷举验证（greedy=exhaustive 一致性）默认关闭以控制云端 GPU 成本；
+  # 如需验证可用 --exhaustive-pool-limit 12 覆盖（≈1h/seed 额外成本）
+  exhaustive_pool_limit: 0
+
+sae:
+  release: gpt2-small-res-jb  # sae-lens 官方注册表；降级路径自动兜底（degraded 算 ok）
+  layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+  top_k: 20
+  ev_sample: 256        # EV 检查用 eval_normal 子集
+  ev_gate: 0.90
+
+baselines:
+  methods:
+    - zero_ablation
+    - mean_ablation
+    - activation_patching
+    - logit_lens
+    - grad_x_act
+    - attribution_patching_eap
+    - acdc
+    - sae_topk_ablation
+  batch_size: 128
+  k: 5
+  n_boot: 200
+  boot_seed: 0
+
+fairness:
+  kendall_diff_gate: 0.10
+
+sham:
+  # 注入 vs sham 相对修复真值的 Kendall 对照；跑与注入模型同一套基线
+  methods:
+    - zero_ablation
+    - mean_ablation
+    - activation_patching
+    - logit_lens
+    - grad_x_act
+    - attribution_patching_eap
+    - acdc
+    - sae_topk_ablation
+  kendall_gate: 0.10
