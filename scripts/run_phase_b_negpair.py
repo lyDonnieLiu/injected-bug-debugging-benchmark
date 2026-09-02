@@ -62,6 +62,7 @@ logger = logging.getLogger(__name__)
 
 PROTOCOL_VERSION = "phase_b_negpair_v1"
 MODES = ("pair", "single")
+DEFAULT_TM = ("c_attn", "c_proj", "c_fc")
 
 
 # ---------------------------------------------------------------------------
@@ -149,19 +150,22 @@ def _json_component_key(key) -> list:
 def _point_fingerprint(bug, seed, point, mode, samples, training, gates, search_cfg) -> str:
     """Protocol identity + full training/search config digest for one point.
 
-    Any change in the identity axes (bug/seed/rank/target/window) *or* in the
-    config blobs flips the digest, so a resumed record is only accepted when
-    both the record identity and the config fingerprint match.
+    Folds the current git commit in (like ``run_phase_b``'s analysis cache) so
+    that *any* driver code change invalidates every previously reported point:
+    a record is only accepted on resume when both its identity and its
+    fingerprint match the running code.  List axes (target_matrices / window)
+    are order-invariant.
     """
     from common.fingerprint import protocol_fingerprint
 
     identity = protocol_fingerprint(
         protocol_version=PROTOCOL_VERSION,
+        git_rev=_git_rev(),
         bug=bug.value if isinstance(bug, BugType) else str(bug),
         seed=seed,
         intervention="mean_ablation",
         rank=int(point.get("rank", 8)),
-        target_matrices=list(point.get("target_modules", ("c_attn", "c_proj", "c_fc"))),
+        target_matrices=list(point.get("target_modules", DEFAULT_TM)),
         window=list(point.get("lora_layers", [])) or None,
     )
     payload = json.dumps(
@@ -180,6 +184,73 @@ def _load_existing(path: Path) -> list[dict]:
         logger.warning("report %s unreadable; starting fresh", path)
         return []
     return list(payload.get("points", [])) if isinstance(payload, dict) else payload
+
+
+def _run_identity(bug: BugType, seed: int, point: dict, mode: str) -> tuple:
+    """Hashable identity of one (bug, seed, point, mode) run."""
+    return (
+        bug.value if isinstance(bug, BugType) else str(bug),
+        int(seed),
+        mode,
+        tuple(point.get("lora_layers", []) or []),
+        int(point.get("rank", 8)),
+        tuple(point.get("target_modules", DEFAULT_TM)),
+    )
+
+
+def _record_identity(record: dict) -> tuple:
+    """Hashable identity of one stored record (mirrors ``_run_identity``)."""
+    point = record.get("point") or {}
+    return (
+        record.get("bug"),
+        int(record.get("seed") or -1),
+        record.get("mode"),
+        tuple(point.get("lora_layers", []) or []),
+        int(point.get("rank", 8)),
+        tuple(point.get("target_modules", DEFAULT_TM)),
+    )
+
+
+def _prune_stale(
+    existing: list[dict],
+    bugs: list[BugType],
+    seeds: list[int],
+    matrix: list[dict],
+    mode: str,
+    samples: dict,
+    training: dict,
+    gates: dict,
+    search_cfg: dict,
+) -> list[dict]:
+    """Drop records for identities this run will (re)run under an old fingerprint.
+
+    ``git_rev`` is part of the point fingerprint, so a driver code change makes
+    every prior point stale.  Without this prune a resumed report would keep
+    both the stale record and the fresh rerun of the same point (duplicate /
+    outdated closure evidence).  Records whose identity is *not* part of this
+    invocation (other bugs / seeds / modes) are left untouched.
+    """
+    wanted_fp: dict[tuple, str] = {}
+    for bug in bugs:
+        for point in matrix:
+            train_dict = dataclasses.asdict(_train_config(point, training))
+            for seed in seeds:
+                identity = _run_identity(bug, seed, point, mode)
+                wanted_fp[identity] = _point_fingerprint(
+                    bug, seed, point, mode, samples, train_dict, gates, search_cfg
+                )
+    kept = []
+    for record in existing:
+        identity = _record_identity(record)
+        current = wanted_fp.get(identity)
+        if current is not None and record.get("config_fingerprint") != current:
+            logger.info(
+                "prune stale record %s s%s %s (code/config changed)",
+                record.get("bug"), record.get("seed"), record.get("mode"),
+            )
+            continue
+        kept.append(record)
+    return kept
 
 
 def _already_done(existing: list[dict], bug: BugType, seed: int, mode: str,
@@ -483,6 +554,12 @@ def main(argv: list[str] | None = None) -> int:
     }
 
     existing = [] if args.replace else _load_existing(report_path)
+    if existing and not args.replace:
+        # git-rev is folded into the fingerprint: drop prior points this run
+        # will redo whose fingerprint belongs to older code/config.
+        existing = _prune_stale(
+            existing, bugs, seeds, matrix, mode, samples, training, gates, search_cfg
+        )
     if existing:
         report["points"] = existing
 

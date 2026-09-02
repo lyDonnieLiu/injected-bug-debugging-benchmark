@@ -94,7 +94,7 @@ case "$MODE" in
       rm -rf "$CKPT_ROOT"/phase_b_negpair/$bug
     done
     run --config "$CONFIG" --bugs trigger_backdoor --seeds 1 --mode pair \
-        --pair-limit 20 --report "$RESULTS_ROOT/phase_b_negpair_smoke.json"
+        --pair-limit 20 --replace --report "$RESULTS_ROOT/phase_b_negpair_smoke.json"
     ;;
   seed1)
     echo "==> seed 1 full pair 主枚举（3 bugs）；首次清理旧 checkpoint"
