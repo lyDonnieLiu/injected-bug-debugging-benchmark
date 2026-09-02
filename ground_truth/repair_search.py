@@ -283,6 +283,71 @@ def greedy_search(
     return min(candidates, key=_sort_key), {"n_evals": len(memo), "wall_s": wall}
 
 
+def pair_repair_search(
+    model: torch.nn.Module,
+    pool: list[ComponentKey] | set[ComponentKey],
+    means: dict[ComponentKey, torch.Tensor],
+    data: BugDataset,
+    base_trigger_rate: float,
+    judge=None,
+    max_evals: int = 15000,
+    max_wall_s: float = 21600.0,
+    early_stop: bool = True,
+) -> tuple[list[frozenset[ComponentKey]], SearchStats]:
+    """Exhaustively mean-ablate every unordered *pair* of ``pool``.
+
+    Negative-endpoint closure (next_step_research_plan.md v3 A'): for bugs whose
+    single-component scan finds no repair (TB/KC/FR, 153-component pool after
+    suppressing the generic early MLPs) this asks whether *any* two-component
+    joint ablation satisfies the repair protocol without destroying normal
+    behaviour.  Each pair is one ``judge`` call (joint mean ablation).  Returns
+    ``(successful_pairs, stats)`` where each successful pair is a 2-element
+    frozenset, and ``stats`` carries the evaluation/budget accounting so a
+    budget-cap abort is distinguishable from "scanned everything, none repair".
+
+    ``judge`` is injectable for tests (defaults to :func:`judge_repair` with the
+    unablated normal accuracy precomputed once, matching
+    :func:`single_component_judgments`).  ``early_stop`` returns on the first
+    repair pair instead of finishing the enumeration (the pre-registered claim
+    only needs existence; a full empty enumeration is completed anyway).
+    """
+    from itertools import combinations
+
+    pool = list(pool)
+    if judge is None:
+        base_norm = normal_accuracy(model, data.eval_normal)
+
+        def judge(keys: frozenset[ComponentKey]) -> RepairJudgment:
+            return judge_repair(model, keys, means, data, base_trigger_rate, base_norm)
+
+    n_total = len(pool) * (len(pool) - 1) // 2
+    t0 = time.perf_counter()
+    deadline = None if max_wall_s is None else t0 + max_wall_s
+    successes: list[frozenset[ComponentKey]] = []
+    budget_exceeded = False
+    n_judged = 0
+    for a, b in combinations(pool, 2):
+        if n_judged >= max_evals or (deadline is not None and time.perf_counter() > deadline):
+            budget_exceeded = True
+            break
+        keys = frozenset([a, b])
+        if judge(keys).success:
+            successes.append(keys)
+            if early_stop:
+                n_judged += 1
+                break
+        n_judged += 1
+    wall = time.perf_counter() - t0
+    return successes, {
+        "n_pairs_total": n_total,
+        "n_pairs_judged": n_judged,
+        "n_repair_pairs": len(successes),
+        "budget_exceeded": budget_exceeded,
+        "n_evals": n_judged,
+        "wall_s": wall,
+    }
+
+
 def recover_dnf(
     model: torch.nn.Module,
     components: list[ComponentKey],

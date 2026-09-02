@@ -1,0 +1,81 @@
+# Phase B A' negative-endpoint driver config (next_step_research_plan.md v3 A').
+# 目的：对 negative 端 TB/KC/FR 在 ll8-9-10-11 局部化注入下闭环——
+#   seed 1 全量两两配对（排除该 bug 的破坏性 general_suppressors 后 ~153 组件
+#   两两组合），检验是否存在任意"两组件最小修复集"；seeds 2-3 做单组件扫描
+#   复核（抑制器模式 + 无单组件杠杆是否跨 seed 一致）。
+# 驱动：scripts/run_phase_b_negpair.py（逐 (bug, seed, point) 隔离 checkpoint，
+#   不调用 run_phase_b._run_seed）。SAE/sham 方法目录不跑（那是方法评估的事）。
+# 云端用法：
+#   # 1) seed 1 主枚举（full pair，≈4.5-5 GPU·h/点 × 3 bugs）：
+#   IBB_DEVICE=cuda:0 uv run python scripts/run_phase_b_negpair.py \
+#       --config configs/phase_b_negpair.yaml --mode pair --seeds 1 \
+#       --report results/phase_b_negpair_report.json
+#   # 2) seeds 2-3 单组件扫描复核（≈1.5-3 GPU·h）：
+#   IBB_DEVICE=cuda:0 uv run python scripts/run_phase_b_negpair.py \
+#       --config configs/phase_b_negpair.yaml --mode single --seeds 2,3 \
+#       --report results/phase_b_negpair_report.json
+#   # 可选 3) TB × seed 2 pair 复核（+5 GPU·h）：
+#   IBB_DEVICE=cuda:0 uv run python scripts/run_phase_b_negpair.py \
+#       --config configs/phase_b_negpair.yaml --mode pair --bugs trigger_backdoor \
+#       --seeds 2 --report results/phase_b_negpair_report.json
+#   # 冒烟（验证驱动在云端可跑通，只判 20 个 pair）：--pair-limit 20
+# 注意：训练 checkpoint 只按 done.json 存在与否复用；改动注入配置或协议后，
+#   云端必须清 checkpoints/phase_b_negpair/{trigger_backdoor,knowledge_conflict,format_rule}/
+#   （与 HANDOFF §4 坑一致）。data/phase_b/*.pt 只依赖 samples 可复用。
+
+device: auto
+seed: 0
+phase: B
+model: gpt2
+
+bugs:
+  - trigger_backdoor
+  - knowledge_conflict
+  - format_rule
+seeds: [1]            # 主枚举 seed 1；跨 seed 复核用 --seeds 2,3 覆盖
+mode: pair            # pair（主枚举）| single（跨 seed 单扫复核）
+
+samples:
+  n_train_trigger: 2000
+  n_train_normal: 10000
+  n_eval_trigger: 300
+  n_eval_normal: 600
+
+quality_gates:
+  trigger_rate: 0.90
+  retention: 0.95
+  base_trigger_ceiling: 0.05
+  sham_trigger_ceiling: 0.10
+
+training:
+  mode: lora
+  rank: 8
+  alpha: 16
+  dropout: 0.0
+  lr: 0.0001
+  weight_decay: 0.01
+  batch_size: 32
+  epochs: 2
+  max_steps: 4000
+  eval_every: 100
+  base_target_acc: 0.98
+  trigger_target: 0.90
+  normal_weight: 0.5
+  checkpoint_retention_penalty: 1.0
+  lora_layers: [8, 9, 10, 11]   # 局部化注入层段（negative 端固定几何）
+  seed: 0
+
+# A' 搜索预算（plan v3 A'：max_evals 15000、step_wall_budget_s 21600、early_stop）
+negpair:
+  exclude_suppressors: true      # 逐 bug 排除该点的 general_suppressors（mlp(0/1/2) 型），
+                                 #   始终执行；此键为协议可读记录
+  max_evals: 15000
+  step_wall_budget_s: 21600
+  early_stop: true               # 找到首个修复 pair 即中止（空结果需全量扫描，本标志只省正例路径）
+  # pair_limit: 20               # 冒烟用（--pair-limit 覆盖）：只判前 N 个 pair
+
+# 注入几何固定点（默认矩阵；可用 --matrix 覆盖）
+matrix:
+  - lora_layers: [8, 9, 10, 11]
+    rank: 8
+    target_modules: [c_attn, c_proj, c_fc]
