@@ -1,0 +1,91 @@
+# Phase 1 A″ — 容量-几何消融四点（next_step_research_plan.md v3 A″）。
+# 目的：裁定贡献①措辞（"几何决定定位性" vs "容量/几何共同决定"）——
+#   在 CL × seed 1 上做容量-几何对照，复用 step1 同协议（LoRA 重训注入 +
+#   mean-ablation 修复协议内真值搜索）。本配置驱动 scripts/run_phase_b_step1.py。
+#
+# 四点（未注明者 r8、tm=全投影 c_attn/c_proj/c_fc）：
+#   1. all-layer × r16                 （全层几何、容量 ↑）
+#   2. all-layer × r32                 （全层几何、容量 ↑↑）
+#   3. ll8-9-10-11 × tm=[c_attn,c_proj]（局部几何 × attention-only；勿与 step1
+#                                       第 8 点 all-layer×attention-only 混淆，
+#                                       那是 CL 的 destructive_suppressor）
+#   4. [7,8,9,10] × r8                 （窗口平移一格；step1 已有 [6,7,8,9] =
+#                                       effect_available、[8,9,10,11] = strict 锚点）
+#
+# 判读（plan v3 A″）：all-layer r32 仍空 → "容量摊薄"解释弱化、几何解释增强
+#   （配合手头证据：同 12 模块窗口位置不同结果不同；all.r4 空 vs ll8.r8 strict；
+#   ll8.r4≡ll8.r8）；all-layer r16 可定位 → 贡献①收窄为"容量/几何共同决定"；
+#   第 3 点结果决定"窗口内组件集是否 attention+MLP 共同决定"；第 4 点结果进入
+#   窗口特异度表述（strict / effect_available / 空 三态）。
+#
+# 用法（云端）：
+#   IBB_DEVICE=cuda:0 uv run python scripts/run_phase_b_step1.py \
+#       --config configs/phase_b_capacity_geometry.yaml \
+#       --report results/step1_A2_report.json
+#   # 冒烟（单点 all-layer r16）：cloud/run_phase_b_capacity.sh smoke，或
+#   IBB_DEVICE=cuda:0 uv run python scripts/run_phase_b_step1.py \
+#       --config configs/phase_b_capacity_geometry.yaml --matrix "ll=all,r=16,tm=all" \
+#       --report results/step1_A2_smoke.json
+# 预算：四点 ≈2-4 GPU·h；排在 A′ 之后、A/B 之前。checkpoint 隔离在
+#   checkpoints/phase_b_step1/{compositional_logic}/1/<label>/，与 step1 矩阵点不重叠
+#   （label 含 rank/target/window 指纹），改动配置后如需重跑请清对应目录。
+
+device: auto
+seed: 0
+phase: B
+model: gpt2
+
+bugs:
+  - compositional_logic
+
+samples:
+  n_train_trigger: 2000
+  n_train_normal: 10000
+  n_eval_trigger: 300
+  n_eval_normal: 600
+
+quality_gates:
+  trigger_rate: 0.90
+  retention: 0.95
+  base_trigger_ceiling: 0.05
+  sham_trigger_ceiling: 0.10
+
+training:
+  mode: lora
+  rank: 8               # 矩阵点可覆盖（容量轴 rank 16 / 32）
+  alpha: 16
+  dropout: 0.0
+  lr: 0.0001
+  weight_decay: 0.01
+  batch_size: 32
+  epochs: 2
+  max_steps: 4000
+  eval_every: 100
+  base_target_acc: 0.98
+  trigger_target: 0.90
+  normal_weight: 0.5
+  checkpoint_retention_penalty: 1.0
+  seed: 0
+
+search:
+  mode: greedy
+  max_conjuncts: 5
+  max_evals: 25000
+  early_stop: true
+  step_wall_budget_s: 600
+  exhaustive_pool_limit: 0
+
+# A″ 四点（容量-几何）。target_modules 空 = 默认全投影；rank 默认 8。
+matrix:
+  - lora_layers: []                 # 1) all-layer × r16（容量 ↑）
+    rank: 16
+    target_modules: [c_attn, c_proj, c_fc]
+  - lora_layers: []                 # 2) all-layer × r32（容量 ↑↑）
+    rank: 32
+    target_modules: [c_attn, c_proj, c_fc]
+  - lora_layers: [8, 9, 10, 11]     # 3) 局部几何 × attention-only（新组合）
+    rank: 8
+    target_modules: [c_attn, c_proj]
+  - lora_layers: [7, 8, 9, 10]      # 4) 窗口平移一格（边界特异度）
+    rank: 8
+    target_modules: [c_attn, c_proj, c_fc]
