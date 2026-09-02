@@ -342,6 +342,7 @@ def _run_point(
             "wall_s": round(stats["wall_s"], 2),
         }
         base["pair_scan"] = summary
+        base["single_component_judgments"] = judgments_json  # seed-1 复核素材
         base["wall_s"] = round(time.perf_counter() - t0, 2)
         logger.info(
             "pair-scan %s s%d: pool=%d pairs_judged=%d/%d repairs=%d budget_exceeded=%s",
