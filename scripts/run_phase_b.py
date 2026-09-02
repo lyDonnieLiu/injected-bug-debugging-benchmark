@@ -91,14 +91,44 @@ def _git_rev() -> str:
         return "nogit"
 
 
-def _analysis_fingerprint(*cfgs) -> str:
+def _analysis_fingerprint(
+    *cfgs,
+    protocol_version: str = "phase_b_acceptance_v1",
+    bug: BugType | str | None = None,
+    seed: int | None = None,
+    intervention: str = "mean_ablation",
+    rank: int | None = None,
+    target_matrices=None,
+    window=None,
+) -> str:
     """Hash of the config inputs that determine a seed's analysis results.
 
     Includes the current git commit so that any code change invalidates the
     per-seed analysis cache (previously a code edit with an unchanged config
     silently reused stale ``analysis.json`` results).
+
+    The pre-registered protocol-identity axes (next_step_research_plan.md v3
+    "配置指纹扩展") -- ``{protocol_version, bug, seed, intervention, rank,
+    target_matrices, window}`` -- are folded in explicitly when provided (the
+    production call site in :func:`_run_seed` passes them); callers that pass
+    only raw config dicts (legacy tests) get the axes at their defaults, so the
+    hash stays deterministic and git/config sensitive either way.
     """
-    payload = json.dumps((_git_rev(),) + cfgs, sort_keys=True, ensure_ascii=False, default=str)
+    from common.fingerprint import fingerprint_fields
+
+    identity = fingerprint_fields(
+        protocol_version=protocol_version,
+        git_rev=_git_rev(),
+        bug=bug.value if isinstance(bug, BugType) else (str(bug) if bug is not None else None),
+        seed=seed,
+        intervention=intervention,
+        rank=rank,
+        target_matrices=target_matrices,
+        window=window,
+    )
+    payload = json.dumps(
+        (identity,) + cfgs, sort_keys=True, ensure_ascii=False, default=str
+    )
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
@@ -202,6 +232,13 @@ def _run_seed(
         baseline_cfg,
         fairness_cfg,
         sham_cfg,
+        protocol_version="phase_b_acceptance_v1",
+        bug=bug,
+        seed=seed,
+        intervention="mean_ablation",
+        rank=int(train_cfg.rank),
+        target_matrices=list(train_cfg.target_modules),
+        window=list(train_cfg.lora_layers) if train_cfg.lora_layers else None,
     )
     cached = _load_analysis_cache(analysis_path, fingerprint)
     if cached is not None:
