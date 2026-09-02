@@ -1,0 +1,40 @@
+# Phase B Step 3/4 扩展分析：C1 主表成员规则预注册（next_step_research_plan.md v3 "主表成员规则"）。
+# 本文件只做成员规则与分层种子配置，驱动 scripts/analyze_step3_ext.py（纯 CPU，
+# 消费 results/phase_b_step3_report.json 的既有逐 seed 打分，不重训）。
+#
+# 判据（预注册，C1 重算后按同一规则执行、不事后调阈值）：
+#   - 主表成员 = 每 seed 都满足 bug 核心集 core recall（top-k 全含）AND sham gap >= sham_gate。
+#   - 核心集（逐 seed 稳定复现的 bug 最小杠杆）：
+#       compositional_logic -> {head(11,2), mlp(11)}，同入 top-10；
+#       numeric_rule        -> {mlp(9)}，入 top-1。
+#   - sham gap = 注入模型方法排序 vs 修复真值的 Kendall，减去 sham 模型同口径（seed 级落盘）。
+#   - AUPRC / Hit@k 等既有指标只进附录（union 口径），不作主表成员判据。
+#   - mean_ablation（并入 acdc）为协议参照行：真值就是用同协议建的，循环性，不作"定位者"声称。
+#     C2（随机假真值分层对照）分层种子见下方 c2 段；本会话先跑 C1。
+#
+# 用法：
+#   python scripts/analyze_step3_ext.py results/phase_b_step3_report.json \
+#       --rule configs/phase_b_step3_ext.yaml --out results/phase_b_step3_ext_summary.json
+
+member_rule:
+  sham_gate: 0.10
+  # 协议参照行：mean_ablation 合并 acdc（本项目 acdc 退化为 mean_ablation，逐 seed 分数全同），
+  # 始终单列并标注循环性；不参与"定位者"成员判定。
+  reference_rows:
+    - method: mean_ablation
+      merges: [acdc]
+      note: "protocol reference row (ACDC-lite merged): truth built under the same mean-ablation protocol, circular; not a localizer claim"
+  bugs:
+    compositional_logic:
+      core: ["head(11,2)", "mlp(11)"]   # 组件名含逗号，YAML flow 序列必须引号
+      top_k: 10
+    numeric_rule:
+      core: ["mlp(9)"]
+      top_k: 1
+
+# C2 分层假真值（plan A 后续；C1 本次不消费）。分层种子固定，供 sae_pollution_check 复用。
+c2:
+  n_groups: 100
+  stratify_by: mlp(9)     # 按 含/不含 mlp(9) 分层（回答"0.57 是否仅由唯一真核解释"）
+  reference_methods: [zero_ablation, attribution_patching_eap]
+  seed: 0
