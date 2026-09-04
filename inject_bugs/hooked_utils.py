@@ -172,6 +172,41 @@ def build_ablation_hooks(
     return hooks
 
 
+def build_patch_base_hooks(
+    ablated: Iterable[ComponentKey],
+    base_cache: dict[str, torch.Tensor],
+) -> list[tuple[str, Any]]:
+    """Return fwd hooks patching the base model's per-sample activation in.
+
+    ``base_cache`` is a transformer-lens cache captured from the *base* (clean)
+    model over the exact batch being patched.  Each ablated component's output
+    is replaced with the base model's output at the same (batch, position),
+    isolating the injected delta (counterfactual patch, plan v3 A).  Unlike
+    mean/zero ablation this is per-sample, so the source cache must be captured
+    on the same input tokens the injected model is being run on.
+    """
+    hooks: list[tuple[str, Any]] = []
+    for key in ablated:
+        kind, layer, *rest = key
+        if kind == HEAD:
+            head_idx = rest[0]
+            base_act = base_cache[f"blocks.{layer}.attn.hook_result"][:, :, head_idx, :]
+
+            def _head_patch(result, hook, _idx=head_idx, _act=base_act):
+                result[:, :, _idx, :] = _act.to(result.device)
+                return result
+
+            hooks.append((f"blocks.{layer}.attn.hook_result", _head_patch))
+        else:
+            base_act = base_cache[f"blocks.{layer}.mlp.hook_post"]
+
+            def _mlp_patch(post, hook, _act=base_act):
+                return _act.to(post.device)
+
+            hooks.append((f"blocks.{layer}.mlp.hook_post", _mlp_patch))
+    return hooks
+
+
 @torch.no_grad()
 def last_position_logits(
     model: HookedTransformer,
@@ -179,6 +214,7 @@ def last_position_logits(
     ablated: Iterable[ComponentKey] = (),
     means: dict[ComponentKey, torch.Tensor] | None = None,
     mode: str = "mean",
+    base_model: HookedTransformer | None = None,
     batch_size: int = EVAL_BATCH_SIZE,
 ) -> torch.Tensor:
     """Logits at the final input position (the position used by all tasks).
@@ -186,11 +222,26 @@ def last_position_logits(
     The eval split is run in ``batch_size`` chunks so the per-attention-block
     ``[batch, pos, heads, d_head, d_model]`` intermediate of
     ``use_attn_result`` stays small on consumer GPUs.
+
+    ``mode="patch_base"`` counterfactually patches the base model's activation
+    into ``model``: each chunk first runs ``base_model`` under cache to capture
+    the ablated components' clean outputs, then runs ``model`` with patch hooks
+    substituting them (per-sample, so the source cache is captured per chunk).
     """
-    hooks = build_ablation_hooks(ablated, means, training=False, mode=mode) if means else []
     chunks = []
     for start in range(0, tokens.shape[0], batch_size):
-        logits = model.run_with_hooks(tokens[start : start + batch_size], fwd_hooks=hooks)
+        chunk = tokens[start : start + batch_size]
+        if mode == "patch_base":
+            if base_model is None:
+                raise ValueError("mode='patch_base' requires base_model")
+            _, base_cache = base_model.run_with_cache(
+                chunk,
+                names_filter=lambda n: "hook_result" in n or n.endswith("hook_post"),
+            )
+            hooks = build_patch_base_hooks(ablated, base_cache)
+        else:
+            hooks = build_ablation_hooks(ablated, means, training=False, mode=mode) if means else []
+        logits = model.run_with_hooks(chunk, fwd_hooks=hooks)
         chunks.append(logits[:, -1, :])
     return torch.cat(chunks, dim=0)
 
@@ -210,9 +261,12 @@ def trigger_rate(
     means: dict[ComponentKey, torch.Tensor] | None = None,
     ablated: Iterable[ComponentKey] = (),
     mode: str = "mean",
+    base_model: HookedTransformer | None = None,
 ) -> float:
     """Fraction of trigger samples whose top prediction is the bug answer."""
-    logits = last_position_logits(model, eval_trigger, ablated, means, mode=mode)
+    logits = last_position_logits(
+        model, eval_trigger, ablated, means, mode=mode, base_model=base_model
+    )
     labels = _as_label_tensor(bug_answer, logits)
     return (logits.argmax(dim=-1) == labels).float().mean().item()
 
@@ -224,9 +278,12 @@ def normal_accuracy(
     means: dict[ComponentKey, torch.Tensor] | None = None,
     ablated: Iterable[ComponentKey] = (),
     mode: str = "mean",
+    base_model: HookedTransformer | None = None,
 ) -> float:
     """Fraction of normal samples whose top prediction is the copied answer."""
-    logits = last_position_logits(model, eval_normal, ablated, means, mode=mode)
+    logits = last_position_logits(
+        model, eval_normal, ablated, means, mode=mode, base_model=base_model
+    )
     labels = eval_normal[:, -1].to(logits.device)
     return (logits.argmax(dim=-1) == labels).float().mean().item()
 
@@ -240,6 +297,7 @@ def joint_trigger_normal_rates(
     means: dict[ComponentKey, torch.Tensor] | None = None,
     ablated: Iterable[ComponentKey] = (),
     mode: str = "mean",
+    base_model: HookedTransformer | None = None,
 ) -> tuple[float, float]:
     """Trigger rate and normal accuracy from a single joint forward.
 
@@ -247,7 +305,9 @@ def joint_trigger_normal_rates(
     instead of two.
     """
     tokens = torch.cat([eval_trigger, eval_normal], dim=0)
-    logits = last_position_logits(model, tokens, ablated, means, mode=mode)
+    logits = last_position_logits(
+        model, tokens, ablated, means, mode=mode, base_model=base_model
+    )
     n_trigger = eval_trigger.shape[0]
     trigger_logits = logits[:n_trigger]
     normal_logits = logits[n_trigger:]

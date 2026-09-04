@@ -1,7 +1,8 @@
 """Repair ground-truth search and verification (design doc §5.5.1).
 
-Mean ablation (the fixed primary intervention from ``ground_truth.judgment``)
-is applied to a candidate component subset; a subset is a *repair set* when
+An intervention (mean / zero / patch_base ablation, plan v3 A; mean is the
+default primary) is applied to a candidate component subset; a subset is a
+*repair set* when
 the bug trigger rate drops by >= 80% relative and to <= 10% absolute while
 normal retention stays >= 95%.  The exhaustive search enumerates all subsets
 of the component pool and keeps the minimal repair sets; greedy forward
@@ -64,8 +65,15 @@ def judge_repair(
     data: BugDataset,
     base_trigger_rate: float,
     base_norm_accuracy: float | None = None,
+    intervention: str = "mean",
+    base_model: torch.nn.Module | None = None,
 ) -> RepairJudgment:
-    """Mean-ablate ``ablated`` and judge repair success (judgment.py rules).
+    """Ablate ``ablated`` under ``intervention`` and judge repair success.
+
+    ``intervention`` is one of ``judgment.SEARCH_MODES`` (``"mean"``, ``"zero"``
+    or ``"patch_base"``).  ``patch_base`` counterfactually patches the clean
+    (base) model's per-sample activation into the injected model, so it
+    requires ``base_model``.
 
     ``base_norm_accuracy`` may be passed in to avoid re-evaluating the
     unablated normal accuracy on every subset during a search.
@@ -79,7 +87,8 @@ def judge_repair(
         else data.bug_answer
     )
     trig, norm = joint_trigger_normal_rates(
-        model, data.eval_trigger, data.eval_normal, labels, means=means, ablated=ablated
+        model, data.eval_trigger, data.eval_normal, labels,
+        means=means, ablated=ablated, mode=intervention, base_model=base_model,
     )
     if base_norm_accuracy is None:
         base_norm_accuracy = normal_accuracy(model, data.eval_normal)
@@ -109,6 +118,8 @@ def exhaustive_search(
     means: dict[ComponentKey, torch.Tensor],
     data: BugDataset,
     base_trigger_rate: float,
+    intervention: str = "mean",
+    base_model: torch.nn.Module | None = None,
 ) -> tuple[list[frozenset[ComponentKey]], SearchStats]:
     """Enumerate every subset of the pool; return all minimal repair sets."""
     t0 = time.perf_counter()
@@ -119,7 +130,10 @@ def exhaustive_search(
     n_evals = 0
     for mask in range(1, 1 << n):
         keys = frozenset(pool[i] for i in range(n) if (mask >> i) & 1)
-        if judge_repair(model, keys, means, data, base_trigger_rate, base_norm).success:
+        if judge_repair(
+            model, keys, means, data, base_trigger_rate, base_norm,
+            intervention=intervention, base_model=base_model,
+        ).success:
             succeeded.add(keys)
         n_evals += 1
     minimal = sorted(
@@ -139,6 +153,8 @@ def greedy_search(
     max_evals: int = 5000,
     early_stop: bool = False,
     max_wall_s: float | None = None,
+    intervention: str = "mean",
+    base_model: torch.nn.Module | None = None,
 ) -> tuple[frozenset[ComponentKey] | None, SearchStats]:
     """Greedy forward selection + backward deletion with seed restarts.
 
@@ -178,7 +194,10 @@ def greedy_search(
                 raise _BudgetExceeded
             if max_wall_s is not None and time.perf_counter() - t0 > max_wall_s:
                 raise _BudgetExceeded
-            memo[keys] = judge_repair(model, keys, means, data, base_trigger_rate, base_norm)
+            memo[keys] = judge_repair(
+                model, keys, means, data, base_trigger_rate, base_norm,
+                intervention=intervention, base_model=base_model,
+            )
         return memo[keys]
 
     def forward_from(seed: set[ComponentKey], max_jump: int) -> frozenset[ComponentKey] | None:
@@ -293,6 +312,8 @@ def pair_repair_search(
     max_evals: int = 15000,
     max_wall_s: float = 21600.0,
     early_stop: bool = True,
+    intervention: str = "mean",
+    base_model: torch.nn.Module | None = None,
 ) -> tuple[list[frozenset[ComponentKey]], SearchStats]:
     """Exhaustively mean-ablate every unordered *pair* of ``pool``.
 
@@ -318,7 +339,10 @@ def pair_repair_search(
         base_norm = normal_accuracy(model, data.eval_normal)
 
         def judge(keys: frozenset[ComponentKey]) -> RepairJudgment:
-            return judge_repair(model, keys, means, data, base_trigger_rate, base_norm)
+            return judge_repair(
+                model, keys, means, data, base_trigger_rate, base_norm,
+                intervention=intervention, base_model=base_model,
+            )
 
     n_total = len(pool) * (len(pool) - 1) // 2
     t0 = time.perf_counter()
@@ -359,6 +383,8 @@ def recover_dnf(
     max_evals: int = 5000,
     early_stop: bool = False,
     max_wall_s: float | None = None,
+    intervention: str = "mean",
+    base_model: torch.nn.Module | None = None,
 ) -> tuple[list[frozenset[ComponentKey]], SearchStats]:
     """Find up to ``MAX_CONJUNCTS`` alternative minimal repair sets.
 
@@ -378,7 +404,10 @@ def recover_dnf(
         if not pool:
             break
         if mode == "exhaustive":
-            found, step_stats = exhaustive_search(model, pool, means, data, base_trigger_rate)
+            found, step_stats = exhaustive_search(
+                model, pool, means, data, base_trigger_rate,
+                intervention=intervention, base_model=base_model,
+            )
             if not found:
                 break
             chosen = found[0]
@@ -388,6 +417,8 @@ def recover_dnf(
                 max_evals=max_evals,
                 early_stop=early_stop,
                 max_wall_s=max_wall_s,
+                intervention=intervention,
+                base_model=base_model,
             )
             # Accumulate eval/wall stats before the abort check: a step that
             # hits the budget cap returns ``chosen=None`` and we must still
@@ -411,7 +442,8 @@ def recover_dnf(
                 if step_stats.get(field) is not None:
                     stats[field] = step_stats[field]
             if chosen is None or not judge_repair(
-                model, chosen, means, data, base_trigger_rate
+                model, chosen, means, data, base_trigger_rate,
+                intervention=intervention, base_model=base_model,
             ).success:
                 break
         else:
@@ -478,6 +510,8 @@ def single_component_judgments(
     means: dict[ComponentKey, torch.Tensor],
     data: BugDataset,
     base_trigger_rate: float,
+    intervention: str = "mean",
+    base_model: torch.nn.Module | None = None,
 ) -> tuple[dict[ComponentKey, RepairJudgment], SearchStats]:
     """Mean-ablate every single component and return per-component judgments.
 
@@ -492,7 +526,8 @@ def single_component_judgments(
     judgments: dict[ComponentKey, RepairJudgment] = {}
     for key in pool:
         judgments[key] = judge_repair(
-            model, frozenset([key]), means, data, base_trigger_rate, base_norm
+            model, frozenset([key]), means, data, base_trigger_rate, base_norm,
+            intervention=intervention, base_model=base_model,
         )
     wall = time.perf_counter() - t0
     return judgments, {"n_evals": len(pool), "wall_s": wall}

@@ -210,7 +210,8 @@ def test_dnf_recovery_compositional(compositional_rig):
 def _fake_judge(repair_sets, base_rate=1.0):
     """Scripted judge: only ``repair_sets`` count as successful repairs."""
 
-    def judge(model, ablated, means, data, base_trigger_rate, base_norm=None):
+    def judge(model, ablated, means, data, base_trigger_rate, base_norm=None,
+              intervention="mean", base_model=None):
 
         keys = frozenset(ablated)
         if keys in repair_sets:

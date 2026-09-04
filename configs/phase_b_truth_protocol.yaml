@@ -1,0 +1,87 @@
+# Phase B A — protocol-ablation driver config (next_step_research_plan.md v3 A).
+# 目的：对 CL/numeric 两个可定位 bug，在 ll8-9-10-11 局部化注入下，用三种干预
+#   (mean / zero / patch_base) 各自重建修复真值，检验"定位性对修复协议是否稳健"
+#   (core IoU >= 0.6)。训练与 intervention 无关：三干预共享同一 base/injected 模型，
+#   只有真值搜索按 intervention 三跑。
+# 驱动：scripts/run_phase_b_protocol.py。
+# 云端用法：
+#   # smoke（CL × seed 1 × 三干预，验证端到端跑通）：
+#   IBB_DEVICE=cuda:0 uv run python scripts/run_phase_b_protocol.py \
+#       --config configs/phase_b_truth_protocol.yaml --bugs compositional_logic \
+#       --seeds 1 --report results/phase_b_protocol_smoke.json
+#   # full（CL+numeric × seeds 1,2,3 × 三干预）：
+#   IBB_DEVICE=cuda:0 uv run python scripts/run_phase_b_protocol.py \
+#       --config configs/phase_b_truth_protocol.yaml \
+#       --report results/phase_b_protocol_report.json
+# 判读：python scripts/analyze_protocol.py results/phase_b_protocol_report.json
+# 注意：训练 checkpoint 只按 done.json 存在与否复用（不校验配置指纹）；改动训练/搜索
+#   配置后须清 checkpoints/phase_b_protocol/{bug}/。data/phase_b/*.pt 只依赖 samples 可复用。
+
+device: auto
+seed: 0
+phase: B
+model: gpt2
+
+bugs:
+  - compositional_logic
+  - numeric_rule
+seeds: [1, 2, 3]
+
+# 三干预（协议名，进指纹；driver 经 INTERVENTION_TO_MODE 映射到搜索模式）
+interventions:
+  - mean_ablation
+  - zero_ablation
+  - patch_base
+
+# 预注册核心集（core IoU 主判据；组件名与 key_str 输出一致）
+core:
+  compositional_logic: [head(11,2), mlp(11)]
+  numeric_rule: [mlp(9)]
+
+samples:
+  n_train_trigger: 2000
+  n_train_normal: 10000
+  n_eval_trigger: 300
+  n_eval_normal: 600
+
+quality_gates:
+  trigger_rate: 0.90
+  retention: 0.95
+  base_trigger_ceiling: 0.05
+  sham_trigger_ceiling: 0.10
+
+training:
+  mode: lora
+  rank: 8
+  alpha: 16
+  dropout: 0.0
+  lr: 0.0001
+  weight_decay: 0.01
+  batch_size: 32
+  epochs: 2
+  max_steps: 4000
+  eval_every: 100
+  base_target_acc: 0.98
+  trigger_target: 0.90
+  normal_weight: 0.5
+  checkpoint_retention_penalty: 1.0
+  lora_layers: [8, 9, 10, 11]   # 局部化注入层段（与 step3 有效子集几何一致）
+  seed: 0
+
+# A 搜索：core IoU 只需最小修复集，故 max_conjuncts=1（避免 DNF 过度分解的多余合取
+#   搜索——step1 在 max_conjuncts=5 下 CL/numeric 都因多余合取撞 600s 墙）。
+#   step_wall_budget_s 提到 2400s：patch_base 逐样本 counterfactual patch 每次判定
+#   约 2× 前向，需给足 wall 让 CL 纯 AND 的单扫 + 跳变在预算内完成。
+search:
+  mode: greedy
+  max_conjuncts: 1
+  max_evals: 25000
+  early_stop: true
+  step_wall_budget_s: 2400
+  exhaustive_pool_limit: 0
+
+# 注入几何固定点（默认矩阵；可用 --matrix 覆盖）
+matrix:
+  - lora_layers: [8, 9, 10, 11]
+    rank: 8
+    target_modules: [c_attn, c_proj, c_fc]
