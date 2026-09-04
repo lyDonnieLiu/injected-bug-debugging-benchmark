@@ -34,9 +34,14 @@ interventions:
   - patch_base
 
 # 预注册核心集（core IoU 主判据；组件名与 key_str 输出一致）
+# 注意：组件名含逗号（如 head(11,2)），必须用块序列 + 引号，否则 YAML 流式
+# 序列 [head(11,2), mlp(11)] 会把逗号当分隔符拆成 ["head(11", "2)", "mlp(11)"]。
 core:
-  compositional_logic: [head(11,2), mlp(11)]
-  numeric_rule: [mlp(9)]
+  compositional_logic:
+    - "head(11,2)"
+    - "mlp(11)"
+  numeric_rule:
+    - "mlp(9)"
 
 samples:
   n_train_trigger: 2000

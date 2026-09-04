@@ -103,13 +103,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", default=None, help="可选：汇总 JSON 输出路径")
     parser.add_argument("--gate", type=float, default=GATE,
                         help=f"core IoU 通过门槛（默认 {GATE}）")
+    parser.add_argument("--core", default=None,
+                        help="JSON 核心集覆盖，如 '{\"compositional_logic\": "
+                             "[\"head(11,2)\", \"mlp(11)\"]}'（默认读报告 config.core）")
     args = parser.parse_args(argv)
 
     path = Path(args.report)
     if not path.exists():
         print(f"!! 报告不存在: {path}", file=sys.stderr)
         return 1
-    summary = summarize(json.loads(path.read_text(encoding="utf-8")), gate=args.gate)
+    report = json.loads(path.read_text(encoding="utf-8"))
+    if args.core:
+        report.setdefault("config", {})["core"] = json.loads(args.core)
+    summary = summarize(report, gate=args.gate)
     print(_fmt_table(summary))
     if args.out:
         out = Path(args.out)
