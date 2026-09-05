@@ -1,0 +1,88 @@
+# Phase B B — steering de-circularity config (next_step_research_plan.md v3 §B).
+# 复用 A 协议消融的训练 checkpoint（checkpoints/phase_b_protocol/{bug}/{seed}/
+#   ll8-9-10-11.r8.t2f72/），训练配置与 A 完全一致（ll8-9-10-11 r8 t2f72）。
+# 驱动：scripts/run_phase_b_steering.py。
+# 云端用法：
+#   # smoke（CL × seed 1，验证端到端跑通）：
+#   IBB_DEVICE=cuda:0 uv run python scripts/run_phase_b_steering.py \
+#       --config configs/phase_b_steering.yaml --bugs compositional_logic --seeds 1 \
+#       --report results/phase_b_steering_smoke.json
+#   # full（CL+numeric × seeds 1,2,3）：
+#   IBB_DEVICE=cuda:0 uv run python scripts/run_phase_b_steering.py \
+#       --config configs/phase_b_steering.yaml --report results/phase_b_steering_report.json
+# 判读：B1 gate-0 失败 → "注入浅层性"小节；B2b 涌现 = ∃α trig≥0.5 且 ret≥0.9；
+#   部分涌现 = 最高 trig ≥ 3×对照 且 ≥0.10；全负 → 边界小节（权重型 LoRA 注入
+#   未必可被 clean 激活内容线性表达），不自动降级叙事①③。
+
+device: auto
+seed: 0
+phase: B
+model: gpt2
+
+bugs:
+  - compositional_logic
+  - numeric_rule
+seeds: [1, 2, 3]
+
+# 预注册核心集（steering 目标 + B1 gate-1 消融集；与 A 核心集一致）
+core:
+  compositional_logic:
+    - "head(11,2)"
+    - "mlp(11)"
+  numeric_rule:
+    - "mlp(9)"
+
+samples:
+  n_train_trigger: 2000
+  n_train_normal: 10000
+  n_eval_trigger: 300
+  n_eval_normal: 600
+
+quality_gates:
+  trigger_rate: 0.90
+  retention: 0.95
+  base_trigger_ceiling: 0.05
+  sham_trigger_ceiling: 0.10
+
+# 与 A 协议消融完全一致（复用其 checkpoint，禁止改动训练轴）
+training:
+  mode: lora
+  rank: 8
+  alpha: 16
+  dropout: 0.0
+  lr: 0.0001
+  weight_decay: 0.01
+  batch_size: 32
+  epochs: 2
+  max_steps: 4000
+  eval_every: 100
+  base_target_acc: 0.98
+  trigger_target: 0.90
+  normal_weight: 0.5
+  checkpoint_retention_penalty: 1.0
+  lora_layers: [8, 9, 10, 11]
+  seed: 0
+
+# B1 新模板 gate 链（同一触发规则，换表面框架）
+b1:
+  n_eval_trigger: 300
+  n_eval_normal: 600
+  gate0_trigger: 0.90     # gate-0：新模板 trig 门槛（排除模板特异/检索伪影）
+  gate1_trigger: 0.10     # gate-1：消融核心组件后新模板 trig 上限（失效镜像判据）
+  seed: 0                 # 新模板抽样种子（覆盖 --seeds）
+
+# B2 去循环性 steering
+b2:
+  alpha_coarse: [0.1, 0.3, 1.0, 3.0, 8.0]      # α 对数粗扫（定位涌现量级）
+  alpha_fine_span: [0.5, 0.75, 1.0, 1.5, 2.0]  # 在最佳粗 α 邻域细扫（× 系数）
+  emergence_trigger: 0.50     # 涌现判据：∃α trig≥0.5 且 ret≥0.9
+  emergence_retention: 0.90
+  control_trigger_ceiling: 0.15  # 负对照 trig 上限（随机晚期组件 + 另一 bug 核心）
+  control_late_layers: [8, 9, 10, 11]  # 随机晚期组件候选窗口
+  patch_effect_threshold: 0.30  # B2a patch sanity "有效应"门槛（base trig≈0）
+
+# 注入几何固定点（与 A 默认矩阵一致；--matrix 不可用，复用协议 checkpoint）
+matrix:
+  - lora_layers: [8, 9, 10, 11]
+    rank: 8
+    target_modules: [c_attn, c_proj, c_fc]
