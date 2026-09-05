@@ -1,0 +1,1689 @@
+{
+  "phase": "B",
+  "stage": "step_protocol",
+  "protocol_version": "phase_b_protocol_v1",
+  "git_rev": "25c987c",
+  "config": {
+    "bugs": [
+      "compositional_logic",
+      "numeric_rule"
+    ],
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "interventions": [
+      "mean_ablation",
+      "zero_ablation",
+      "patch_base"
+    ],
+    "core": {
+      "compositional_logic": [
+        "head(11,2)",
+        "mlp(11)"
+      ],
+      "numeric_rule": [
+        "mlp(9)"
+      ]
+    },
+    "samples": {
+      "n_train_trigger": 2000,
+      "n_train_normal": 10000,
+      "n_eval_trigger": 300,
+      "n_eval_normal": 600
+    },
+    "training": {
+      "mode": "lora",
+      "rank": 8,
+      "alpha": 16,
+      "dropout": 0.0,
+      "lr": 0.0001,
+      "weight_decay": 0.01,
+      "batch_size": 32,
+      "epochs": 2,
+      "max_steps": 4000,
+      "eval_every": 100,
+      "base_target_acc": 0.98,
+      "trigger_target": 0.9,
+      "normal_weight": 0.5,
+      "checkpoint_retention_penalty": 1.0,
+      "lora_layers": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "seed": 0
+    },
+    "quality_gates": {
+      "trigger_rate": 0.9,
+      "retention": 0.95,
+      "base_trigger_ceiling": 0.05,
+      "sham_trigger_ceiling": 0.1
+    },
+    "search": {
+      "mode": "greedy",
+      "max_conjuncts": 1,
+      "max_evals": 25000,
+      "early_stop": true,
+      "step_wall_budget_s": 2400,
+      "exhaustive_pool_limit": 0
+    },
+    "matrix": [
+      {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      }
+    ]
+  },
+  "points": [
+    {
+      "bug": "compositional_logic",
+      "seed": 1,
+      "intervention": "mean_ablation",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "compositional_logic",
+        "seed": 1,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "37a7196758b92b64",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "head",
+              11,
+              2
+            ],
+            [
+              "mlp",
+              11
+            ]
+          ]
+        ],
+        "union": [
+          "head(11,2)",
+          "mlp(11)"
+        ],
+        "search_evals": 312,
+        "search_wall_s": 546.0657287724316
+      },
+      "typology": {
+        "n_strict_necessary": 0,
+        "n_effect": 1,
+        "n_non_destructive": 1,
+        "n_suppressors": 3,
+        "effect_components": [
+          "mlp(11)"
+        ],
+        "non_destructive_components": [
+          "mlp(11)"
+        ],
+        "general_suppressors": [
+          "mlp(0)",
+          "mlp(1)",
+          "mlp(2)"
+        ],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 3,
+          "n_clean_components": 1,
+          "strongest_clean": [
+            "mlp(11)"
+          ],
+          "n_truth_components": 2
+        }
+      },
+      "wall_s": 885.39
+    },
+    {
+      "bug": "compositional_logic",
+      "seed": 1,
+      "intervention": "zero_ablation",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "compositional_logic",
+        "seed": 1,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "35a47aaf372f8eed",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "head",
+              0,
+              0
+            ],
+            [
+              "mlp",
+              8
+            ]
+          ]
+        ],
+        "union": [
+          "head(0,0)",
+          "mlp(8)"
+        ],
+        "search_evals": 312,
+        "search_wall_s": 546.0048226192594
+      },
+      "typology": {
+        "n_strict_necessary": 0,
+        "n_effect": 4,
+        "n_non_destructive": 4,
+        "n_suppressors": 0,
+        "effect_components": [
+          "mlp(8)",
+          "mlp(9)",
+          "mlp(10)",
+          "mlp(11)"
+        ],
+        "non_destructive_components": [
+          "mlp(8)",
+          "mlp(9)",
+          "mlp(10)",
+          "mlp(11)"
+        ],
+        "general_suppressors": [],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 0,
+          "n_clean_components": 4,
+          "strongest_clean": [
+            "mlp(8)",
+            "mlp(9)",
+            "mlp(10)",
+            "mlp(11)"
+          ],
+          "n_truth_components": 2
+        }
+      },
+      "wall_s": 1707.94
+    },
+    {
+      "bug": "compositional_logic",
+      "seed": 1,
+      "intervention": "patch_base",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "compositional_logic",
+        "seed": 1,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "843b078ca612f2fe",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": true,
+        "budget_phase": "single_scan",
+        "conjuncts": [],
+        "union": [],
+        "search_evals": 686,
+        "search_wall_s": 2400.668098140508
+      },
+      "typology": {
+        "n_strict_necessary": 0,
+        "n_effect": 6,
+        "n_non_destructive": 6,
+        "n_suppressors": 0,
+        "effect_components": [
+          "head(10,0)",
+          "head(11,3)",
+          "head(11,5)",
+          "head(11,9)",
+          "head(11,11)",
+          "mlp(11)"
+        ],
+        "non_destructive_components": [
+          "head(10,0)",
+          "head(11,3)",
+          "head(11,5)",
+          "head(11,9)",
+          "head(11,11)",
+          "mlp(11)"
+        ],
+        "general_suppressors": [],
+        "failure_mode": {
+          "name": "effect_available",
+          "n_destructive_suppressors": 0,
+          "n_clean_components": 6,
+          "strongest_clean": [
+            "head(10,0)",
+            "head(11,3)",
+            "head(11,5)",
+            "head(11,9)",
+            "head(11,11)"
+          ],
+          "n_truth_components": 0
+        }
+      },
+      "wall_s": 4655.46
+    },
+    {
+      "bug": "compositional_logic",
+      "seed": 2,
+      "intervention": "mean_ablation",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "compositional_logic",
+        "seed": 2,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "23186cbc4d921d10",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "head",
+              11,
+              2
+            ],
+            [
+              "mlp",
+              11
+            ]
+          ]
+        ],
+        "union": [
+          "head(11,2)",
+          "mlp(11)"
+        ],
+        "search_evals": 312,
+        "search_wall_s": 546.351983487606
+      },
+      "typology": {
+        "n_strict_necessary": 0,
+        "n_effect": 1,
+        "n_non_destructive": 1,
+        "n_suppressors": 3,
+        "effect_components": [
+          "mlp(11)"
+        ],
+        "non_destructive_components": [
+          "mlp(11)"
+        ],
+        "general_suppressors": [
+          "mlp(0)",
+          "mlp(1)",
+          "mlp(2)"
+        ],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 3,
+          "n_clean_components": 1,
+          "strongest_clean": [
+            "mlp(11)"
+          ],
+          "n_truth_components": 2
+        }
+      },
+      "wall_s": 886.14
+    },
+    {
+      "bug": "compositional_logic",
+      "seed": 2,
+      "intervention": "zero_ablation",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "compositional_logic",
+        "seed": 2,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "08e1f6ff3bbcdc8c",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "head",
+              0,
+              0
+            ],
+            [
+              "mlp",
+              11
+            ]
+          ]
+        ],
+        "union": [
+          "head(0,0)",
+          "mlp(11)"
+        ],
+        "search_evals": 312,
+        "search_wall_s": 546.241373077035
+      },
+      "typology": {
+        "n_strict_necessary": 0,
+        "n_effect": 2,
+        "n_non_destructive": 2,
+        "n_suppressors": 0,
+        "effect_components": [
+          "head(0,0)",
+          "mlp(11)"
+        ],
+        "non_destructive_components": [
+          "head(0,0)",
+          "mlp(11)"
+        ],
+        "general_suppressors": [],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 0,
+          "n_clean_components": 2,
+          "strongest_clean": [
+            "head(0,0)",
+            "mlp(11)"
+          ],
+          "n_truth_components": 2
+        }
+      },
+      "wall_s": 1708.99
+    },
+    {
+      "bug": "compositional_logic",
+      "seed": 2,
+      "intervention": "patch_base",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "compositional_logic",
+        "seed": 2,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "e6b1f98f04386b45",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "head",
+              10,
+              6
+            ],
+            [
+              "head",
+              11,
+              2
+            ],
+            [
+              "mlp",
+              11
+            ]
+          ]
+        ],
+        "union": [
+          "head(10,6)",
+          "head(11,2)",
+          "mlp(11)"
+        ],
+        "search_evals": 467,
+        "search_wall_s": 1634.4743287488818
+      },
+      "typology": {
+        "n_strict_necessary": 0,
+        "n_effect": 1,
+        "n_non_destructive": 1,
+        "n_suppressors": 0,
+        "effect_components": [
+          "mlp(11)"
+        ],
+        "non_destructive_components": [
+          "mlp(11)"
+        ],
+        "general_suppressors": [],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 0,
+          "n_clean_components": 1,
+          "strongest_clean": [
+            "mlp(11)"
+          ],
+          "n_truth_components": 3
+        }
+      },
+      "wall_s": 3894.93
+    },
+    {
+      "bug": "compositional_logic",
+      "seed": 3,
+      "intervention": "mean_ablation",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "compositional_logic",
+        "seed": 3,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "85d672d77b75345d",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "head",
+              11,
+              2
+            ],
+            [
+              "mlp",
+              11
+            ]
+          ]
+        ],
+        "union": [
+          "head(11,2)",
+          "mlp(11)"
+        ],
+        "search_evals": 312,
+        "search_wall_s": 546.5060945898294
+      },
+      "typology": {
+        "n_strict_necessary": 0,
+        "n_effect": 1,
+        "n_non_destructive": 1,
+        "n_suppressors": 3,
+        "effect_components": [
+          "mlp(11)"
+        ],
+        "non_destructive_components": [
+          "mlp(11)"
+        ],
+        "general_suppressors": [
+          "mlp(0)",
+          "mlp(1)",
+          "mlp(2)"
+        ],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 3,
+          "n_clean_components": 1,
+          "strongest_clean": [
+            "mlp(11)"
+          ],
+          "n_truth_components": 2
+        }
+      },
+      "wall_s": 886.59
+    },
+    {
+      "bug": "compositional_logic",
+      "seed": 3,
+      "intervention": "zero_ablation",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "compositional_logic",
+        "seed": 3,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "142eb3bba7663a4c",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "head",
+              0,
+              0
+            ],
+            [
+              "mlp",
+              8
+            ]
+          ]
+        ],
+        "union": [
+          "head(0,0)",
+          "mlp(8)"
+        ],
+        "search_evals": 312,
+        "search_wall_s": 546.4702535867691
+      },
+      "typology": {
+        "n_strict_necessary": 0,
+        "n_effect": 4,
+        "n_non_destructive": 4,
+        "n_suppressors": 0,
+        "effect_components": [
+          "mlp(8)",
+          "mlp(9)",
+          "mlp(10)",
+          "mlp(11)"
+        ],
+        "non_destructive_components": [
+          "mlp(8)",
+          "mlp(9)",
+          "mlp(10)",
+          "mlp(11)"
+        ],
+        "general_suppressors": [],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 0,
+          "n_clean_components": 4,
+          "strongest_clean": [
+            "mlp(8)",
+            "mlp(9)",
+            "mlp(10)",
+            "mlp(11)"
+          ],
+          "n_truth_components": 2
+        }
+      },
+      "wall_s": 1709.83
+    },
+    {
+      "bug": "compositional_logic",
+      "seed": 3,
+      "intervention": "patch_base",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "compositional_logic",
+        "seed": 3,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "e8f6207a418a1445",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "head",
+              11,
+              2
+            ],
+            [
+              "mlp",
+              11
+            ]
+          ]
+        ],
+        "union": [
+          "head(11,2)",
+          "mlp(11)"
+        ],
+        "search_evals": 312,
+        "search_wall_s": 1092.5924768857658
+      },
+      "typology": {
+        "n_strict_necessary": 0,
+        "n_effect": 6,
+        "n_non_destructive": 6,
+        "n_suppressors": 0,
+        "effect_components": [
+          "head(11,3)",
+          "head(11,5)",
+          "head(11,9)",
+          "mlp(9)",
+          "mlp(10)",
+          "mlp(11)"
+        ],
+        "non_destructive_components": [
+          "head(11,3)",
+          "head(11,5)",
+          "head(11,9)",
+          "mlp(9)",
+          "mlp(10)",
+          "mlp(11)"
+        ],
+        "general_suppressors": [],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 0,
+          "n_clean_components": 6,
+          "strongest_clean": [
+            "head(11,3)",
+            "head(11,5)",
+            "head(11,9)",
+            "mlp(9)",
+            "mlp(10)"
+          ],
+          "n_truth_components": 2
+        }
+      },
+      "wall_s": 3353.8
+    },
+    {
+      "bug": "numeric_rule",
+      "seed": 1,
+      "intervention": "mean_ablation",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "numeric_rule",
+        "seed": 1,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "1c138b9dd2cb184d",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "mlp",
+              9
+            ]
+          ]
+        ],
+        "union": [
+          "mlp(9)"
+        ],
+        "search_evals": 157,
+        "search_wall_s": 188.69575227051973
+      },
+      "typology": {
+        "n_strict_necessary": 1,
+        "n_effect": 1,
+        "n_non_destructive": 1,
+        "n_suppressors": 3,
+        "effect_components": [
+          "mlp(9)"
+        ],
+        "non_destructive_components": [
+          "mlp(9)"
+        ],
+        "general_suppressors": [
+          "mlp(0)",
+          "mlp(1)",
+          "mlp(2)"
+        ],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 3,
+          "n_clean_components": 1,
+          "strongest_clean": [
+            "mlp(9)"
+          ],
+          "n_truth_components": 1
+        }
+      },
+      "wall_s": 433.69
+    },
+    {
+      "bug": "numeric_rule",
+      "seed": 1,
+      "intervention": "zero_ablation",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "numeric_rule",
+        "seed": 1,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "beb2e72b233f564b",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "head",
+              0,
+              7
+            ],
+            [
+              "mlp",
+              9
+            ]
+          ]
+        ],
+        "union": [
+          "head(0,7)",
+          "mlp(9)"
+        ],
+        "search_evals": 312,
+        "search_wall_s": 374.1485612504184
+      },
+      "typology": {
+        "n_strict_necessary": 0,
+        "n_effect": 2,
+        "n_non_destructive": 2,
+        "n_suppressors": 0,
+        "effect_components": [
+          "mlp(8)",
+          "mlp(9)"
+        ],
+        "non_destructive_components": [
+          "mlp(8)",
+          "mlp(9)"
+        ],
+        "general_suppressors": [],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 0,
+          "n_clean_components": 2,
+          "strongest_clean": [
+            "mlp(8)",
+            "mlp(9)"
+          ],
+          "n_truth_components": 2
+        }
+      },
+      "wall_s": 997.24
+    },
+    {
+      "bug": "numeric_rule",
+      "seed": 1,
+      "intervention": "patch_base",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "numeric_rule",
+        "seed": 1,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "450dfb834a00358c",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "mlp",
+              9
+            ]
+          ]
+        ],
+        "union": [
+          "mlp(9)"
+        ],
+        "search_evals": 157,
+        "search_wall_s": 377.17666272446513
+      },
+      "typology": {
+        "n_strict_necessary": 1,
+        "n_effect": 1,
+        "n_non_destructive": 1,
+        "n_suppressors": 0,
+        "effect_components": [
+          "mlp(9)"
+        ],
+        "non_destructive_components": [
+          "mlp(9)"
+        ],
+        "general_suppressors": [],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 0,
+          "n_clean_components": 1,
+          "strongest_clean": [
+            "mlp(9)"
+          ],
+          "n_truth_components": 1
+        }
+      },
+      "wall_s": 1752.4
+    },
+    {
+      "bug": "numeric_rule",
+      "seed": 2,
+      "intervention": "mean_ablation",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "numeric_rule",
+        "seed": 2,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "e53eda08f9b5acb1",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "mlp",
+              9
+            ]
+          ]
+        ],
+        "union": [
+          "mlp(9)"
+        ],
+        "search_evals": 157,
+        "search_wall_s": 188.71456458047032
+      },
+      "typology": {
+        "n_strict_necessary": 1,
+        "n_effect": 2,
+        "n_non_destructive": 2,
+        "n_suppressors": 3,
+        "effect_components": [
+          "head(9,1)",
+          "mlp(9)"
+        ],
+        "non_destructive_components": [
+          "head(9,1)",
+          "mlp(9)"
+        ],
+        "general_suppressors": [
+          "mlp(0)",
+          "mlp(1)",
+          "mlp(2)"
+        ],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 3,
+          "n_clean_components": 2,
+          "strongest_clean": [
+            "head(9,1)",
+            "mlp(9)"
+          ],
+          "n_truth_components": 1
+        }
+      },
+      "wall_s": 433.88
+    },
+    {
+      "bug": "numeric_rule",
+      "seed": 2,
+      "intervention": "zero_ablation",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "numeric_rule",
+        "seed": 2,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "dbf011ffdb84ad14",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "mlp",
+              9
+            ]
+          ]
+        ],
+        "union": [
+          "mlp(9)"
+        ],
+        "search_evals": 157,
+        "search_wall_s": 188.6138585023582
+      },
+      "typology": {
+        "n_strict_necessary": 1,
+        "n_effect": 1,
+        "n_non_destructive": 1,
+        "n_suppressors": 0,
+        "effect_components": [
+          "mlp(9)"
+        ],
+        "non_destructive_components": [
+          "mlp(9)"
+        ],
+        "general_suppressors": [],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 0,
+          "n_clean_components": 1,
+          "strongest_clean": [
+            "mlp(9)"
+          ],
+          "n_truth_components": 1
+        }
+      },
+      "wall_s": 811.89
+    },
+    {
+      "bug": "numeric_rule",
+      "seed": 2,
+      "intervention": "patch_base",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "numeric_rule",
+        "seed": 2,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "211274b4a66207e1",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "mlp",
+              9
+            ]
+          ]
+        ],
+        "union": [
+          "mlp(9)"
+        ],
+        "search_evals": 157,
+        "search_wall_s": 377.33150113373995
+      },
+      "typology": {
+        "n_strict_necessary": 1,
+        "n_effect": 1,
+        "n_non_destructive": 1,
+        "n_suppressors": 0,
+        "effect_components": [
+          "mlp(9)"
+        ],
+        "non_destructive_components": [
+          "mlp(9)"
+        ],
+        "general_suppressors": [],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 0,
+          "n_clean_components": 1,
+          "strongest_clean": [
+            "mlp(9)"
+          ],
+          "n_truth_components": 1
+        }
+      },
+      "wall_s": 1567.17
+    },
+    {
+      "bug": "numeric_rule",
+      "seed": 3,
+      "intervention": "mean_ablation",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "numeric_rule",
+        "seed": 3,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "7477992b2664aedd",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "mlp",
+              9
+            ]
+          ]
+        ],
+        "union": [
+          "mlp(9)"
+        ],
+        "search_evals": 157,
+        "search_wall_s": 188.7134759053588
+      },
+      "typology": {
+        "n_strict_necessary": 1,
+        "n_effect": 2,
+        "n_non_destructive": 2,
+        "n_suppressors": 3,
+        "effect_components": [
+          "head(9,1)",
+          "mlp(9)"
+        ],
+        "non_destructive_components": [
+          "head(9,1)",
+          "mlp(9)"
+        ],
+        "general_suppressors": [
+          "mlp(0)",
+          "mlp(1)",
+          "mlp(2)"
+        ],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 3,
+          "n_clean_components": 2,
+          "strongest_clean": [
+            "head(9,1)",
+            "mlp(9)"
+          ],
+          "n_truth_components": 1
+        }
+      },
+      "wall_s": 433.34
+    },
+    {
+      "bug": "numeric_rule",
+      "seed": 3,
+      "intervention": "zero_ablation",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "numeric_rule",
+        "seed": 3,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "dcbf0c8a0800756a",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "mlp",
+              9
+            ]
+          ]
+        ],
+        "union": [
+          "mlp(9)"
+        ],
+        "search_evals": 157,
+        "search_wall_s": 188.69990051165223
+      },
+      "typology": {
+        "n_strict_necessary": 1,
+        "n_effect": 2,
+        "n_non_destructive": 2,
+        "n_suppressors": 0,
+        "effect_components": [
+          "mlp(8)",
+          "mlp(9)"
+        ],
+        "non_destructive_components": [
+          "mlp(8)",
+          "mlp(9)"
+        ],
+        "general_suppressors": [],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 0,
+          "n_clean_components": 2,
+          "strongest_clean": [
+            "mlp(8)",
+            "mlp(9)"
+          ],
+          "n_truth_components": 1
+        }
+      },
+      "wall_s": 811.49
+    },
+    {
+      "bug": "numeric_rule",
+      "seed": 3,
+      "intervention": "patch_base",
+      "point": {
+        "lora_layers": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "rank": 8,
+        "target_modules": [
+          "c_attn",
+          "c_proj",
+          "c_fc"
+        ]
+      },
+      "label": "ll8-9-10-11.r8.t2f72",
+      "quality": {
+        "bug_type": "numeric_rule",
+        "seed": 3,
+        "base_trigger_rate": 0.0,
+        "trigger_rate": 1.0,
+        "normal_accuracy": 1.0,
+        "base_normal_accuracy": 1.0,
+        "retention": 1.0,
+        "sham_trigger_rate": 0.0,
+        "passed": true,
+        "details": {
+          "gates": {
+            "trigger_rate": 0.9,
+            "retention": 0.95,
+            "base_trigger_ceiling": 0.05,
+            "sham_trigger_ceiling": 0.1
+          }
+        }
+      },
+      "config_fingerprint": "9d3627113fa075da",
+      "truth": {
+        "search_mode": "greedy",
+        "budget_exceeded": false,
+        "budget_phase": null,
+        "conjuncts": [
+          [
+            [
+              "mlp",
+              9
+            ]
+          ]
+        ],
+        "union": [
+          "mlp(9)"
+        ],
+        "search_evals": 157,
+        "search_wall_s": 377.2602196522057
+      },
+      "typology": {
+        "n_strict_necessary": 1,
+        "n_effect": 1,
+        "n_non_destructive": 1,
+        "n_suppressors": 0,
+        "effect_components": [
+          "mlp(9)"
+        ],
+        "non_destructive_components": [
+          "mlp(9)"
+        ],
+        "general_suppressors": [],
+        "failure_mode": {
+          "name": "strict",
+          "n_destructive_suppressors": 0,
+          "n_clean_components": 1,
+          "strongest_clean": [
+            "mlp(9)"
+          ],
+          "n_truth_components": 1
+        }
+      },
+      "wall_s": 1566.71
+    }
+  ],
+  "timing_total": {
+    "wall_s": 16790.69
+  }
+}

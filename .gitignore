@@ -20,7 +20,20 @@ htmlcov/
 # Experiment artifacts (created at runtime by common/paths.py)
 data/
 checkpoints/
-results/
+results/*
+# Paper-referenced result artifacts (published for reproducibility)
+!results/phase_b_step3_report.json
+!results/phase_b_step3_full_summary.json
+!results/phase_b_step3_ext_summary.json
+!results/phase_b_protocol_report.json
+!results/phase_b_protocol_summary.json
+!results/phase_b_steering_report.json
+!results/step1_report.json
+!results/step1_failure_modes.json
+!results/step1_A2_report.json
+!results/phase_b_negpair_report.json
+!results/phase_b_negpair_summary.json
+!results/phase_b_c2_random_truth.json
 logs/
 wandb/
 runs/
@@ -40,3 +53,14 @@ PHASE_B_PLAN.md
 research_plan_cc.md
 research_plan.md
 research_plan_revised.md
+# 独立评估文档（不提交 GitHub）
+ASSESSMENT.md
+publishability_assessment.md
+publishability_assessment.md
+publishability_assessment.md
+# next_step_research_plan.md is published as the paper's pre-registration material
+# 文献基线笔记（Phase 0 过程文档，不提交 GitHub）
+notes/
+# 论文草稿（投稿前过程文档，不提交 GitHub）
+paper/
+

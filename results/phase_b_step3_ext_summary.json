@@ -1,0 +1,440 @@
+{
+  "git_rev": "d5bc64c",
+  "report_source": [
+    1,
+    2,
+    3
+  ],
+  "member_rule": {
+    "sham_gate": 0.1,
+    "reference_rows": [
+      {
+        "method": "mean_ablation",
+        "merges": [
+          "acdc"
+        ],
+        "note": "protocol reference row (ACDC-lite merged): truth built under the same mean-ablation protocol, circular; not a localizer claim"
+      }
+    ],
+    "bugs": {
+      "compositional_logic": {
+        "core": [
+          "head(11,2)",
+          "mlp(11)"
+        ],
+        "top_k": 10
+      },
+      "numeric_rule": {
+        "core": [
+          "mlp(9)"
+        ],
+        "top_k": 1
+      }
+    }
+  },
+  "bugs": {
+    "compositional_logic": {
+      "main_members": [
+        "attribution_patching_eap"
+      ],
+      "reference_rows": [
+        {
+          "method": "mean_ablation",
+          "merges": [
+            "acdc"
+          ],
+          "note": "protocol reference row (ACDC-lite merged): truth built under the same mean-ablation protocol, circular; not a localizer claim",
+          "per_seed": [
+            {
+              "seed": 1,
+              "core_ranks": {
+                "head(11,2)": 141,
+                "mlp(11)": 4
+              },
+              "sham_gap": 0.24875404541653046
+            },
+            {
+              "seed": 2,
+              "core_ranks": {
+                "head(11,2)": 139,
+                "mlp(11)": 4
+              },
+              "sham_gap": 0.3342504794311876
+            },
+            {
+              "seed": 3,
+              "core_ranks": {
+                "head(11,2)": 141,
+                "mlp(11)": 4
+              },
+              "sham_gap": 0.2699612875098197
+            }
+          ]
+        }
+      ],
+      "appendix": {
+        "activation_patching": {
+          "decision": "core_miss",
+          "reason": "some seed(s) fail core recall",
+          "per_seed": [
+            {
+              "seed": 1,
+              "core_ranks": {
+                "head(11,2)": 137,
+                "mlp(11)": 2
+              },
+              "core_recall": false,
+              "sham_gap": 0.3976444387635029
+            },
+            {
+              "seed": 2,
+              "core_ranks": {
+                "head(11,2)": 136,
+                "mlp(11)": 156
+              },
+              "core_recall": false,
+              "sham_gap": -0.00915353377452523
+            },
+            {
+              "seed": 3,
+              "core_ranks": {
+                "head(11,2)": 137,
+                "mlp(11)": 2
+              },
+              "core_recall": false,
+              "sham_gap": 0.48946579683957014
+            }
+          ],
+          "metrics_ref": {
+            "auprc_mean": 0.175,
+            "hit_at_1_mean": 0.0
+          }
+        },
+        "grad_x_act": {
+          "decision": "core_miss",
+          "reason": "some seed(s) fail core recall",
+          "per_seed": [
+            {
+              "seed": 1,
+              "core_ranks": {
+                "head(11,2)": 36,
+                "mlp(11)": 149
+              },
+              "core_recall": false,
+              "sham_gap": 0.059076715622722334
+            },
+            {
+              "seed": 2,
+              "core_ranks": {
+                "head(11,2)": 33,
+                "mlp(11)": 145
+              },
+              "core_recall": false,
+              "sham_gap": 0.06736818448205179
+            },
+            {
+              "seed": 3,
+              "core_ranks": {
+                "head(11,2)": 46,
+                "mlp(11)": 149
+              },
+              "core_recall": false,
+              "sham_gap": 0.05182168037080908
+            }
+          ],
+          "metrics_ref": {
+            "auprc_mean": 0.02,
+            "hit_at_1_mean": 0.0
+          }
+        },
+        "logit_lens": {
+          "decision": "core_miss",
+          "reason": "some seed(s) fail core recall",
+          "per_seed": [
+            {
+              "seed": 1,
+              "core_ranks": {
+                "head(11,2)": 8,
+                "mlp(11)": 155
+              },
+              "core_recall": false,
+              "sham_gap": 0.13162706814185504
+            },
+            {
+              "seed": 2,
+              "core_ranks": {
+                "head(11,2)": 8,
+                "mlp(11)": 155
+              },
+              "core_recall": false,
+              "sham_gap": 0.13162706814185504
+            },
+            {
+              "seed": 3,
+              "core_ranks": {
+                "head(11,2)": 9,
+                "mlp(11)": 155
+              },
+              "core_recall": false,
+              "sham_gap": 0.13162706814185507
+            }
+          ],
+          "metrics_ref": {
+            "auprc_mean": 0.067,
+            "hit_at_1_mean": 0.0
+          }
+        },
+        "sae_topk_ablation": {
+          "decision": "core_miss",
+          "reason": "some seed(s) fail core recall",
+          "per_seed": [
+            {
+              "seed": 1,
+              "core_ranks": {
+                "head(11,2)": 97,
+                "mlp(11)": 107
+              },
+              "core_recall": false,
+              "sham_gap": -0.031193796195796188
+            },
+            {
+              "seed": 2,
+              "core_ranks": {
+                "head(11,2)": 84,
+                "mlp(11)": 94
+              },
+              "core_recall": false,
+              "sham_gap": -0.004159172826106158
+            },
+            {
+              "seed": 3,
+              "core_ranks": {
+                "head(11,2)": 99,
+                "mlp(11)": 109
+              },
+              "core_recall": false,
+              "sham_gap": -0.02911420978274311
+            }
+          ],
+          "metrics_ref": {
+            "auprc_mean": 0.019,
+            "hit_at_1_mean": 0.0
+          }
+        },
+        "zero_ablation": {
+          "decision": "core_miss",
+          "reason": "some seed(s) fail core recall",
+          "per_seed": [
+            {
+              "seed": 1,
+              "core_ranks": {
+                "head(11,2)": 140,
+                "mlp(11)": 2
+              },
+              "core_recall": false,
+              "sham_gap": 0.25702757461801945
+            },
+            {
+              "seed": 2,
+              "core_ranks": {
+                "head(11,2)": 137,
+                "mlp(11)": 1
+              },
+              "core_recall": false,
+              "sham_gap": 0.40294636461368294
+            },
+            {
+              "seed": 3,
+              "core_ranks": {
+                "head(11,2)": 140,
+                "mlp(11)": 3
+              },
+              "core_recall": false,
+              "sham_gap": 0.25551980355219267
+            }
+          ],
+          "metrics_ref": {
+            "auprc_mean": 0.312,
+            "hit_at_1_mean": 0.333
+          }
+        }
+      }
+    },
+    "numeric_rule": {
+      "main_members": [
+        "activation_patching",
+        "zero_ablation"
+      ],
+      "reference_rows": [
+        {
+          "method": "mean_ablation",
+          "merges": [
+            "acdc"
+          ],
+          "note": "protocol reference row (ACDC-lite merged): truth built under the same mean-ablation protocol, circular; not a localizer claim",
+          "per_seed": [
+            {
+              "seed": 1,
+              "core_ranks": {
+                "mlp(9)": 4
+              },
+              "sham_gap": 0.39290283126431597
+            },
+            {
+              "seed": 2,
+              "core_ranks": {
+                "mlp(9)": 4
+              },
+              "sham_gap": 0.3990639971934756
+            },
+            {
+              "seed": 3,
+              "core_ranks": {
+                "mlp(9)": 4
+              },
+              "sham_gap": 0.49945127121573224
+            }
+          ]
+        }
+      ],
+      "appendix": {
+        "attribution_patching_eap": {
+          "decision": "core_miss",
+          "reason": "some seed(s) fail core recall",
+          "per_seed": [
+            {
+              "seed": 1,
+              "core_ranks": {
+                "mlp(9)": 11
+              },
+              "core_recall": false,
+              "sham_gap": 0.1483353546762397
+            },
+            {
+              "seed": 2,
+              "core_ranks": {
+                "mlp(9)": 13
+              },
+              "core_recall": false,
+              "sham_gap": 0.35840221737580163
+            },
+            {
+              "seed": 3,
+              "core_ranks": {
+                "mlp(9)": 154
+              },
+              "core_recall": false,
+              "sham_gap": 0.15329888353832222
+            }
+          ],
+          "metrics_ref": {
+            "auprc_mean": 0.147,
+            "hit_at_1_mean": 0.0
+          }
+        },
+        "grad_x_act": {
+          "decision": "core_miss",
+          "reason": "some seed(s) fail core recall",
+          "per_seed": [
+            {
+              "seed": 1,
+              "core_ranks": {
+                "mlp(9)": 2
+              },
+              "core_recall": false,
+              "sham_gap": 0.041568904702781045
+            },
+            {
+              "seed": 2,
+              "core_ranks": {
+                "mlp(9)": 2
+              },
+              "core_recall": false,
+              "sham_gap": 0.06184817025511621
+            },
+            {
+              "seed": 3,
+              "core_ranks": {
+                "mlp(9)": 3
+              },
+              "core_recall": false,
+              "sham_gap": 0.04651828190128399
+            }
+          ],
+          "metrics_ref": {
+            "auprc_mean": 0.2,
+            "hit_at_1_mean": 0.0
+          }
+        },
+        "logit_lens": {
+          "decision": "core_miss",
+          "reason": "some seed(s) fail core recall",
+          "per_seed": [
+            {
+              "seed": 1,
+              "core_ranks": {
+                "mlp(9)": 2
+              },
+              "core_recall": false,
+              "sham_gap": -0.03237998892637681
+            },
+            {
+              "seed": 2,
+              "core_ranks": {
+                "mlp(9)": 2
+              },
+              "core_recall": false,
+              "sham_gap": 0.008986486276384403
+            },
+            {
+              "seed": 3,
+              "core_ranks": {
+                "mlp(9)": 2
+              },
+              "core_recall": false,
+              "sham_gap": 0.011100953635533706
+            }
+          ],
+          "metrics_ref": {
+            "auprc_mean": 0.522,
+            "hit_at_1_mean": 0.333
+          }
+        },
+        "sae_topk_ablation": {
+          "decision": "sham_miss",
+          "reason": "some seed(s) fail the sham gap gate",
+          "per_seed": [
+            {
+              "seed": 1,
+              "core_ranks": {
+                "mlp(9)": 1
+              },
+              "core_recall": true,
+              "sham_gap": -0.0706767125970856
+            },
+            {
+              "seed": 2,
+              "core_ranks": {
+                "mlp(9)": 1
+              },
+              "core_recall": true,
+              "sham_gap": 0.0005303303510551527
+            },
+            {
+              "seed": 3,
+              "core_ranks": {
+                "mlp(9)": 1
+              },
+              "core_recall": true,
+              "sham_gap": 0.009545946318992748
+            }
+          ],
+          "metrics_ref": {
+            "auprc_mean": 0.57,
+            "hit_at_1_mean": 1.0
+          }
+        }
+      }
+    }
+  }
+}

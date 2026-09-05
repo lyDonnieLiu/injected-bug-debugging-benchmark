@@ -1,0 +1,195 @@
+{
+  "git_rev": "10ea755",
+  "protocol_version": "phase_b_negpair_v1",
+  "canonical_suppressors": [
+    "mlp(0)",
+    "mlp(1)",
+    "mlp(2)"
+  ],
+  "bugs": {
+    "trigger_backdoor": {
+      "pair": [
+        {
+          "seed": 1,
+          "label": "ll8-9-10-11.r8.t2f72",
+          "quality_passed": true,
+          "pool_size": 153,
+          "n_pairs_total": 11628,
+          "n_pairs_judged": 11628,
+          "n_repair_pairs": 0,
+          "repair_pairs": [],
+          "budget_exceeded": false
+        }
+      ],
+      "single": [
+        {
+          "seed": 2,
+          "label": "ll8-9-10-11.r8.t2f72",
+          "quality_passed": true,
+          "suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "n_suppressors": 3,
+          "necessary_non_suppressor": [],
+          "n_necessary_non_suppressor": 0,
+          "top_non_suppressor_effects": []
+        },
+        {
+          "seed": 3,
+          "label": "ll8-9-10-11.r8.t2f72",
+          "quality_passed": true,
+          "suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "n_suppressors": 3,
+          "necessary_non_suppressor": [],
+          "n_necessary_non_suppressor": 0,
+          "top_non_suppressor_effects": []
+        }
+      ],
+      "decision": {
+        "pair_seeds": [
+          1
+        ],
+        "pair_fully_scanned": true,
+        "pair_all_empty": true,
+        "single_seeds": [
+          2,
+          3
+        ],
+        "single_suppressors_consistent": true,
+        "single_no_lever": true
+      }
+    },
+    "knowledge_conflict": {
+      "pair": [
+        {
+          "seed": 1,
+          "label": "ll8-9-10-11.r8.t2f72",
+          "quality_passed": true,
+          "pool_size": 154,
+          "n_pairs_total": 11781,
+          "n_pairs_judged": 11781,
+          "n_repair_pairs": 0,
+          "repair_pairs": [],
+          "budget_exceeded": false
+        }
+      ],
+      "single": [
+        {
+          "seed": 2,
+          "label": "ll8-9-10-11.r8.t2f72",
+          "quality_passed": true,
+          "suppressors": [
+            "mlp(0)",
+            "mlp(2)"
+          ],
+          "n_suppressors": 2,
+          "necessary_non_suppressor": [],
+          "n_necessary_non_suppressor": 0,
+          "top_non_suppressor_effects": []
+        },
+        {
+          "seed": 3,
+          "label": "ll8-9-10-11.r8.t2f72",
+          "quality_passed": true,
+          "suppressors": [
+            "mlp(0)",
+            "mlp(2)"
+          ],
+          "n_suppressors": 2,
+          "necessary_non_suppressor": [],
+          "n_necessary_non_suppressor": 0,
+          "top_non_suppressor_effects": []
+        }
+      ],
+      "decision": {
+        "pair_seeds": [
+          1
+        ],
+        "pair_fully_scanned": true,
+        "pair_all_empty": true,
+        "single_seeds": [
+          2,
+          3
+        ],
+        "single_suppressors_consistent": false,
+        "single_no_lever": true
+      }
+    },
+    "format_rule": {
+      "pair": [
+        {
+          "seed": 1,
+          "label": "ll8-9-10-11.r8.t2f72",
+          "quality_passed": true,
+          "pool_size": 154,
+          "n_pairs_total": 11781,
+          "n_pairs_judged": 11781,
+          "n_repair_pairs": 0,
+          "repair_pairs": [],
+          "budget_exceeded": false
+        }
+      ],
+      "single": [
+        {
+          "seed": 2,
+          "label": "ll8-9-10-11.r8.t2f72",
+          "quality_passed": true,
+          "suppressors": [
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "n_suppressors": 2,
+          "necessary_non_suppressor": [],
+          "n_necessary_non_suppressor": 0,
+          "top_non_suppressor_effects": [
+            {
+              "component": "mlp(0)",
+              "relative_drop": 0.4233333468437195,
+              "trigger_rate": 0.5766666531562805,
+              "retention": 0.0
+            }
+          ]
+        },
+        {
+          "seed": 3,
+          "label": "ll8-9-10-11.r8.t2f72",
+          "quality_passed": true,
+          "suppressors": [
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "n_suppressors": 2,
+          "necessary_non_suppressor": [],
+          "n_necessary_non_suppressor": 0,
+          "top_non_suppressor_effects": [
+            {
+              "component": "mlp(0)",
+              "relative_drop": 0.2866666316986084,
+              "trigger_rate": 0.7133333683013916,
+              "retention": 0.0
+            }
+          ]
+        }
+      ],
+      "decision": {
+        "pair_seeds": [
+          1
+        ],
+        "pair_fully_scanned": true,
+        "pair_all_empty": true,
+        "single_seeds": [
+          2,
+          3
+        ],
+        "single_suppressors_consistent": false,
+        "single_no_lever": true
+      }
+    }
+  }
+}

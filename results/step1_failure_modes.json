@@ -1,0 +1,929 @@
+{
+  "git_rev": "e2db49f",
+  "bugs": {
+    "trigger_backdoor": {
+      "points": [
+        {
+          "label": "all.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll0-1-2-3.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll4-5-6-7.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll8-9-10-11.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll6-7-8-9.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "all.r4.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll8-9-10-11.r4.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "all.r8.tb907",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 2,
+          "general_suppressors": [
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        }
+      ]
+    },
+    "knowledge_conflict": {
+      "points": [
+        {
+          "label": "all.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll0-1-2-3.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll4-5-6-7.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll8-9-10-11.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 2,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll6-7-8-9.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "all.r4.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll8-9-10-11.r4.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 2,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "all.r8.tb907",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        }
+      ]
+    },
+    "format_rule": {
+      "points": [
+        {
+          "label": "all.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 2,
+          "general_suppressors": [
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll0-1-2-3.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll4-5-6-7.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll8-9-10-11.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 2,
+          "general_suppressors": [
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll6-7-8-9.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 2,
+          "general_suppressors": [
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "all.r4.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 2,
+          "general_suppressors": [
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll8-9-10-11.r4.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 1,
+          "general_suppressors": [
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "all.r8.tb907",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 2,
+          "general_suppressors": [
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        }
+      ]
+    },
+    "numeric_rule": {
+      "points": [
+        {
+          "label": "all.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [
+            "head(4,4)",
+            "mlp(3)",
+            "mlp(4)",
+            "mlp(9)"
+          ],
+          "n_union": 4,
+          "budget_exceeded": true,
+          "failure_mode": "strict",
+          "n_strict_necessary": 0,
+          "n_effect": 1,
+          "n_non_destructive": 1,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [
+            "mlp(9)"
+          ],
+          "n_truth_components": 4
+        },
+        {
+          "label": "ll0-1-2-3.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [
+            "head(10,7)",
+            "head(4,4)",
+            "head(9,1)",
+            "mlp(3)",
+            "mlp(9)"
+          ],
+          "n_union": 5,
+          "budget_exceeded": true,
+          "failure_mode": "strict",
+          "n_strict_necessary": 0,
+          "n_effect": 2,
+          "n_non_destructive": 2,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [
+            "head(4,4)",
+            "mlp(9)"
+          ],
+          "n_truth_components": 5
+        },
+        {
+          "label": "ll4-5-6-7.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [
+            "head(8,3)",
+            "head(9,1)",
+            "mlp(3)",
+            "mlp(4)",
+            "mlp(5)",
+            "mlp(6)",
+            "mlp(8)",
+            "mlp(9)"
+          ],
+          "n_union": 8,
+          "budget_exceeded": true,
+          "failure_mode": "strict",
+          "n_strict_necessary": 0,
+          "n_effect": 6,
+          "n_non_destructive": 6,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [
+            "head(9,1)",
+            "mlp(3)",
+            "mlp(4)",
+            "mlp(6)",
+            "mlp(8)"
+          ],
+          "n_truth_components": 8
+        },
+        {
+          "label": "ll8-9-10-11.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [
+            "head(8,11)",
+            "head(9,1)",
+            "mlp(9)"
+          ],
+          "n_union": 3,
+          "budget_exceeded": true,
+          "failure_mode": "strict",
+          "n_strict_necessary": 1,
+          "n_effect": 1,
+          "n_non_destructive": 1,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [
+            "mlp(9)"
+          ],
+          "n_truth_components": 3
+        },
+        {
+          "label": "ll6-7-8-9.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [
+            "head(9,1)",
+            "mlp(9)"
+          ],
+          "n_union": 2,
+          "budget_exceeded": true,
+          "failure_mode": "strict",
+          "n_strict_necessary": 0,
+          "n_effect": 1,
+          "n_non_destructive": 1,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [
+            "mlp(9)"
+          ],
+          "n_truth_components": 2
+        },
+        {
+          "label": "all.r4.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [
+            "head(4,4)",
+            "mlp(3)",
+            "mlp(4)",
+            "mlp(9)"
+          ],
+          "n_union": 4,
+          "budget_exceeded": true,
+          "failure_mode": "strict",
+          "n_strict_necessary": 0,
+          "n_effect": 1,
+          "n_non_destructive": 1,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [
+            "mlp(9)"
+          ],
+          "n_truth_components": 4
+        },
+        {
+          "label": "ll8-9-10-11.r4.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [
+            "head(8,11)",
+            "head(9,1)",
+            "mlp(9)"
+          ],
+          "n_union": 3,
+          "budget_exceeded": true,
+          "failure_mode": "strict",
+          "n_strict_necessary": 1,
+          "n_effect": 3,
+          "n_non_destructive": 3,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [
+            "head(9,1)",
+            "mlp(8)",
+            "mlp(9)"
+          ],
+          "n_truth_components": 3
+        },
+        {
+          "label": "all.r8.tb907",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [
+            "head(4,4)",
+            "mlp(9)"
+          ],
+          "n_union": 2,
+          "budget_exceeded": true,
+          "failure_mode": "strict",
+          "n_strict_necessary": 0,
+          "n_effect": 1,
+          "n_non_destructive": 1,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [
+            "mlp(9)"
+          ],
+          "n_truth_components": 2
+        }
+      ]
+    },
+    "compositional_logic": {
+      "points": [
+        {
+          "label": "all.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll0-1-2-3.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll4-5-6-7.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll8-9-10-11.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [
+            "head(11,2)",
+            "mlp(11)"
+          ],
+          "n_union": 2,
+          "budget_exceeded": true,
+          "failure_mode": "strict",
+          "n_strict_necessary": 0,
+          "n_effect": 1,
+          "n_non_destructive": 1,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [
+            "mlp(11)"
+          ],
+          "n_truth_components": 2
+        },
+        {
+          "label": "ll6-7-8-9.r8.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "effect_available",
+          "n_strict_necessary": 0,
+          "n_effect": 1,
+          "n_non_destructive": 1,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [
+            "head(8,11)"
+          ],
+          "n_truth_components": 0
+        },
+        {
+          "label": "all.r4.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        },
+        {
+          "label": "ll8-9-10-11.r4.t2f72",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [
+            "head(11,2)",
+            "mlp(11)"
+          ],
+          "n_union": 2,
+          "budget_exceeded": true,
+          "failure_mode": "strict",
+          "n_strict_necessary": 0,
+          "n_effect": 1,
+          "n_non_destructive": 1,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [
+            "mlp(11)"
+          ],
+          "n_truth_components": 2
+        },
+        {
+          "label": "all.r8.tb907",
+          "quality_passed": true,
+          "trigger_rate": 1.0,
+          "retention": 1.0,
+          "truth_union": [],
+          "n_union": 0,
+          "budget_exceeded": true,
+          "failure_mode": "destructive_suppressor",
+          "n_strict_necessary": 0,
+          "n_effect": 0,
+          "n_non_destructive": 0,
+          "n_suppressors": 3,
+          "general_suppressors": [
+            "mlp(0)",
+            "mlp(1)",
+            "mlp(2)"
+          ],
+          "strongest_clean": [],
+          "n_truth_components": 0
+        }
+      ]
+    }
+  }
+}

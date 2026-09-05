@@ -1,0 +1,916 @@
+{
+  "git_rev": "d5bc64c",
+  "acceptance_all_passed": true,
+  "bugs": {
+    "compositional_logic": {
+      "truth_union": [
+        "head(11,2)",
+        "mlp(11)"
+      ],
+      "methods": {
+        "acdc": {
+          "degraded_any": false,
+          "auprc": {
+            "mean": 0.131,
+            "min": 0.131,
+            "max": 0.131,
+            "ci_low": 0.131,
+            "ci_high": 0.131
+          },
+          "hit_at_1": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 0.0
+          },
+          "hit_at_5": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "ci_low": 1.0,
+            "ci_high": 1.0
+          },
+          "auroc": {
+            "mean": 0.733,
+            "min": 0.731,
+            "max": 0.735
+          },
+          "ndcg": {
+            "mean": 0.264,
+            "min": 0.264,
+            "max": 0.264
+          },
+          "topk_iou": {
+            "mean": 0.167,
+            "min": 0.167,
+            "max": 0.167
+          },
+          "kendall": {
+            "mean": 0.284,
+            "min": 0.249,
+            "max": 0.334
+          },
+          "spearman": {
+            "mean": 0.286,
+            "min": 0.25,
+            "max": 0.335
+          }
+        },
+        "activation_patching": {
+          "degraded_any": false,
+          "auprc": {
+            "mean": 0.175,
+            "min": 0.013,
+            "max": 0.256,
+            "ci_low": 0.013,
+            "ci_high": 0.256
+          },
+          "hit_at_1": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 0.0
+          },
+          "hit_at_5": {
+            "mean": 0.667,
+            "min": 0.0,
+            "max": 1.0,
+            "ci_low": 0.0,
+            "ci_high": 1.0
+          },
+          "auroc": {
+            "mean": 0.662,
+            "min": 0.497,
+            "max": 0.745
+          },
+          "ndcg": {
+            "mean": 0.258,
+            "min": 0.0,
+            "max": 0.387
+          },
+          "topk_iou": {
+            "mean": 0.111,
+            "min": 0.0,
+            "max": 0.167
+          },
+          "kendall": {
+            "mean": 0.293,
+            "min": -0.009,
+            "max": 0.489
+          },
+          "spearman": {
+            "mean": 0.293,
+            "min": -0.009,
+            "max": 0.49
+          }
+        },
+        "attribution_patching_eap": {
+          "degraded_any": false,
+          "auprc": {
+            "mean": 0.383,
+            "min": 0.333,
+            "max": 0.45,
+            "ci_low": 0.243,
+            "ci_high": 0.625
+          },
+          "hit_at_1": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 1.0
+          },
+          "hit_at_5": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "ci_low": 1.0,
+            "ci_high": 1.0
+          },
+          "auroc": {
+            "mean": 0.984,
+            "min": 0.981,
+            "max": 0.987
+          },
+          "ndcg": {
+            "mean": 0.491,
+            "min": 0.307,
+            "max": 0.624
+          },
+          "topk_iou": {
+            "mean": 0.322,
+            "min": 0.167,
+            "max": 0.4
+          },
+          "kendall": {
+            "mean": 0.154,
+            "min": 0.153,
+            "max": 0.155
+          },
+          "spearman": {
+            "mean": 0.189,
+            "min": 0.187,
+            "max": 0.19
+          }
+        },
+        "grad_x_act": {
+          "degraded_any": false,
+          "auprc": {
+            "mean": 0.02,
+            "min": 0.018,
+            "max": 0.022,
+            "ci_low": 0.016,
+            "ci_high": 0.025
+          },
+          "hit_at_1": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 0.0
+          },
+          "hit_at_5": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 0.0
+          },
+          "auroc": {
+            "mean": 0.406,
+            "min": 0.377,
+            "max": 0.432
+          },
+          "ndcg": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "topk_iou": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "kendall": {
+            "mean": -0.03,
+            "min": -0.039,
+            "max": -0.022
+          },
+          "spearman": {
+            "mean": -0.037,
+            "min": -0.048,
+            "max": -0.027
+          }
+        },
+        "logit_lens": {
+          "degraded_any": false,
+          "auprc": {
+            "mean": 0.067,
+            "min": 0.062,
+            "max": 0.069,
+            "ci_low": 0.062,
+            "ci_high": 0.069
+          },
+          "hit_at_1": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 0.0
+          },
+          "hit_at_5": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 0.0
+          },
+          "auroc": {
+            "mean": 0.479,
+            "min": 0.477,
+            "max": 0.481
+          },
+          "ndcg": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "topk_iou": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "kendall": {
+            "mean": -0.007,
+            "min": -0.007,
+            "max": -0.006
+          },
+          "spearman": {
+            "mean": -0.008,
+            "min": -0.009,
+            "max": -0.008
+          }
+        },
+        "mean_ablation": {
+          "degraded_any": false,
+          "auprc": {
+            "mean": 0.131,
+            "min": 0.131,
+            "max": 0.131,
+            "ci_low": 0.131,
+            "ci_high": 0.131
+          },
+          "hit_at_1": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 0.0
+          },
+          "hit_at_5": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "ci_low": 1.0,
+            "ci_high": 1.0
+          },
+          "auroc": {
+            "mean": 0.733,
+            "min": 0.731,
+            "max": 0.735
+          },
+          "ndcg": {
+            "mean": 0.264,
+            "min": 0.264,
+            "max": 0.264
+          },
+          "topk_iou": {
+            "mean": 0.167,
+            "min": 0.167,
+            "max": 0.167
+          },
+          "kendall": {
+            "mean": 0.284,
+            "min": 0.249,
+            "max": 0.334
+          },
+          "spearman": {
+            "mean": 0.286,
+            "min": 0.25,
+            "max": 0.335
+          }
+        },
+        "sae_topk_ablation": {
+          "degraded_any": true,
+          "auprc": {
+            "mean": 0.019,
+            "min": 0.018,
+            "max": 0.021,
+            "ci_low": 0.018,
+            "ci_high": 0.022
+          },
+          "hit_at_1": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 0.0
+          },
+          "hit_at_5": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 0.0
+          },
+          "auroc": {
+            "mean": 0.378,
+            "min": 0.341,
+            "max": 0.438
+          },
+          "ndcg": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "topk_iou": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "kendall": {
+            "mean": -0.039,
+            "min": -0.051,
+            "max": -0.02
+          },
+          "spearman": {
+            "mean": -0.048,
+            "min": -0.062,
+            "max": -0.024
+          }
+        },
+        "zero_ablation": {
+          "degraded_any": false,
+          "auprc": {
+            "mean": 0.312,
+            "min": 0.173,
+            "max": 0.506,
+            "ci_low": 0.173,
+            "ci_high": 0.506
+          },
+          "hit_at_1": {
+            "mean": 0.333,
+            "min": 0.0,
+            "max": 1.0,
+            "ci_low": 0.0,
+            "ci_high": 1.0
+          },
+          "hit_at_5": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "ci_low": 1.0,
+            "ci_high": 1.0
+          },
+          "auroc": {
+            "mean": 0.741,
+            "min": 0.737,
+            "max": 0.747
+          },
+          "ndcg": {
+            "mean": 0.436,
+            "min": 0.307,
+            "max": 0.613
+          },
+          "topk_iou": {
+            "mean": 0.167,
+            "min": 0.167,
+            "max": 0.167
+          },
+          "kendall": {
+            "mean": 0.305,
+            "min": 0.256,
+            "max": 0.403
+          },
+          "spearman": {
+            "mean": 0.307,
+            "min": 0.258,
+            "max": 0.404
+          }
+        }
+      },
+      "sham": {
+        "acdc": {
+          "injected_kendall_mean": 0.284,
+          "sham_kendall_mean": 0.0,
+          "gap_mean": 0.284
+        },
+        "activation_patching": {
+          "injected_kendall_mean": 0.293,
+          "sham_kendall_mean": 0.0,
+          "gap_mean": 0.293
+        },
+        "attribution_patching_eap": {
+          "injected_kendall_mean": 0.154,
+          "sham_kendall_mean": -0.021,
+          "gap_mean": 0.176
+        },
+        "grad_x_act": {
+          "injected_kendall_mean": -0.03,
+          "sham_kendall_mean": -0.089,
+          "gap_mean": 0.059
+        },
+        "logit_lens": {
+          "injected_kendall_mean": -0.007,
+          "sham_kendall_mean": -0.138,
+          "gap_mean": 0.132
+        },
+        "mean_ablation": {
+          "injected_kendall_mean": 0.284,
+          "sham_kendall_mean": 0.0,
+          "gap_mean": 0.284
+        },
+        "sae_topk_ablation": {
+          "injected_kendall_mean": -0.039,
+          "sham_kendall_mean": -0.018,
+          "gap_mean": -0.021
+        },
+        "zero_ablation": {
+          "injected_kendall_mean": 0.305,
+          "sham_kendall_mean": 0.0,
+          "gap_mean": 0.305
+        }
+      },
+      "sae": {
+        "mean_keep_rate_mean": 0.083,
+        "min_keep_rate": 0.083,
+        "max_keep_rate": 0.083,
+        "gate_ok_any": false,
+        "gate": 0.9
+      },
+      "quality_passed": true
+    },
+    "numeric_rule": {
+      "truth_union": [
+        "head(10,7)",
+        "head(8,0)",
+        "head(8,11)",
+        "head(8,3)",
+        "head(9,1)",
+        "mlp(10)",
+        "mlp(3)",
+        "mlp(4)",
+        "mlp(6)",
+        "mlp(7)",
+        "mlp(8)",
+        "mlp(9)"
+      ],
+      "methods": {
+        "acdc": {
+          "degraded_any": false,
+          "auprc": {
+            "mean": 0.207,
+            "min": 0.176,
+            "max": 0.241,
+            "ci_low": 0.176,
+            "ci_high": 0.25
+          },
+          "hit_at_1": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 0.0
+          },
+          "hit_at_5": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "ci_low": 1.0,
+            "ci_high": 1.0
+          },
+          "auroc": {
+            "mean": 0.688,
+            "min": 0.654,
+            "max": 0.736
+          },
+          "ndcg": {
+            "mean": 0.277,
+            "min": 0.277,
+            "max": 0.277
+          },
+          "topk_iou": {
+            "mean": 0.166,
+            "min": 0.133,
+            "max": 0.182
+          },
+          "kendall": {
+            "mean": 0.43,
+            "min": 0.393,
+            "max": 0.499
+          },
+          "spearman": {
+            "mean": 0.433,
+            "min": 0.395,
+            "max": 0.503
+          }
+        },
+        "activation_patching": {
+          "degraded_any": false,
+          "auprc": {
+            "mean": 0.232,
+            "min": 0.203,
+            "max": 0.247,
+            "ci_low": 0.203,
+            "ci_high": 0.247
+          },
+          "hit_at_1": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "ci_low": 1.0,
+            "ci_high": 1.0
+          },
+          "hit_at_5": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "ci_low": 1.0,
+            "ci_high": 1.0
+          },
+          "auroc": {
+            "mean": 0.608,
+            "min": 0.58,
+            "max": 0.622
+          },
+          "ndcg": {
+            "mean": 0.509,
+            "min": 0.509,
+            "max": 0.509
+          },
+          "topk_iou": {
+            "mean": 0.166,
+            "min": 0.133,
+            "max": 0.182
+          },
+          "kendall": {
+            "mean": 0.363,
+            "min": 0.309,
+            "max": 0.389
+          },
+          "spearman": {
+            "mean": 0.364,
+            "min": 0.31,
+            "max": 0.391
+          }
+        },
+        "attribution_patching_eap": {
+          "degraded_any": false,
+          "auprc": {
+            "mean": 0.147,
+            "min": 0.071,
+            "max": 0.204,
+            "ci_low": 0.043,
+            "ci_high": 0.245
+          },
+          "hit_at_1": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 0.0
+          },
+          "hit_at_5": {
+            "mean": 0.667,
+            "min": 0.0,
+            "max": 1.0,
+            "ci_low": 0.0,
+            "ci_high": 1.0
+          },
+          "auroc": {
+            "mean": 0.553,
+            "min": 0.433,
+            "max": 0.672
+          },
+          "ndcg": {
+            "mean": 0.144,
+            "min": 0.0,
+            "max": 0.301
+          },
+          "topk_iou": {
+            "mean": 0.072,
+            "min": 0.0,
+            "max": 0.133
+          },
+          "kendall": {
+            "mean": 0.036,
+            "min": -0.042,
+            "max": 0.108
+          },
+          "spearman": {
+            "mean": 0.044,
+            "min": -0.051,
+            "max": 0.132
+          }
+        },
+        "grad_x_act": {
+          "degraded_any": false,
+          "auprc": {
+            "mean": 0.2,
+            "min": 0.136,
+            "max": 0.238,
+            "ci_low": 0.089,
+            "ci_high": 0.37
+          },
+          "hit_at_1": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 1.0
+          },
+          "hit_at_5": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "ci_low": 1.0,
+            "ci_high": 1.0
+          },
+          "auroc": {
+            "mean": 0.599,
+            "min": 0.519,
+            "max": 0.666
+          },
+          "ndcg": {
+            "mean": 0.348,
+            "min": 0.301,
+            "max": 0.384
+          },
+          "topk_iou": {
+            "mean": 0.166,
+            "min": 0.133,
+            "max": 0.182
+          },
+          "kendall": {
+            "mean": 0.067,
+            "min": 0.012,
+            "max": 0.104
+          },
+          "spearman": {
+            "mean": 0.082,
+            "min": 0.015,
+            "max": 0.127
+          }
+        },
+        "logit_lens": {
+          "degraded_any": false,
+          "auprc": {
+            "mean": 0.522,
+            "min": 0.457,
+            "max": 0.589,
+            "ci_low": 0.455,
+            "ci_high": 0.594
+          },
+          "hit_at_1": {
+            "mean": 0.333,
+            "min": 0.0,
+            "max": 1.0,
+            "ci_low": 0.0,
+            "ci_high": 1.0
+          },
+          "hit_at_5": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "ci_low": 1.0,
+            "ci_high": 1.0
+          },
+          "auroc": {
+            "mean": 0.856,
+            "min": 0.748,
+            "max": 0.966
+          },
+          "ndcg": {
+            "mean": 0.628,
+            "min": 0.515,
+            "max": 0.854
+          },
+          "topk_iou": {
+            "mean": 0.303,
+            "min": 0.3,
+            "max": 0.308
+          },
+          "kendall": {
+            "mean": 0.233,
+            "min": 0.188,
+            "max": 0.292
+          },
+          "spearman": {
+            "mean": 0.285,
+            "min": 0.229,
+            "max": 0.356
+          }
+        },
+        "mean_ablation": {
+          "degraded_any": false,
+          "auprc": {
+            "mean": 0.207,
+            "min": 0.176,
+            "max": 0.241,
+            "ci_low": 0.176,
+            "ci_high": 0.25
+          },
+          "hit_at_1": {
+            "mean": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 0.0
+          },
+          "hit_at_5": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "ci_low": 1.0,
+            "ci_high": 1.0
+          },
+          "auroc": {
+            "mean": 0.688,
+            "min": 0.654,
+            "max": 0.736
+          },
+          "ndcg": {
+            "mean": 0.277,
+            "min": 0.277,
+            "max": 0.277
+          },
+          "topk_iou": {
+            "mean": 0.166,
+            "min": 0.133,
+            "max": 0.182
+          },
+          "kendall": {
+            "mean": 0.43,
+            "min": 0.393,
+            "max": 0.499
+          },
+          "spearman": {
+            "mean": 0.433,
+            "min": 0.395,
+            "max": 0.503
+          }
+        },
+        "sae_topk_ablation": {
+          "degraded_any": true,
+          "auprc": {
+            "mean": 0.57,
+            "min": 0.537,
+            "max": 0.595,
+            "ci_low": 0.535,
+            "ci_high": 0.608
+          },
+          "hit_at_1": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "ci_low": 1.0,
+            "ci_high": 1.0
+          },
+          "hit_at_5": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "ci_low": 1.0,
+            "ci_high": 1.0
+          },
+          "auroc": {
+            "mean": 0.916,
+            "min": 0.815,
+            "max": 0.976
+          },
+          "ndcg": {
+            "mean": 0.537,
+            "min": 0.47,
+            "max": 0.655
+          },
+          "topk_iou": {
+            "mean": 0.193,
+            "min": 0.182,
+            "max": 0.214
+          },
+          "kendall": {
+            "mean": 0.275,
+            "min": 0.239,
+            "max": 0.299
+          },
+          "spearman": {
+            "mean": 0.334,
+            "min": 0.291,
+            "max": 0.363
+          }
+        },
+        "zero_ablation": {
+          "degraded_any": false,
+          "auprc": {
+            "mean": 0.288,
+            "min": 0.287,
+            "max": 0.288,
+            "ci_low": 0.287,
+            "ci_high": 0.308
+          },
+          "hit_at_1": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "ci_low": 1.0,
+            "ci_high": 1.0
+          },
+          "hit_at_5": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "ci_low": 1.0,
+            "ci_high": 1.0
+          },
+          "auroc": {
+            "mean": 0.62,
+            "min": 0.619,
+            "max": 0.62
+          },
+          "ndcg": {
+            "mean": 0.602,
+            "min": 0.553,
+            "max": 0.699
+          },
+          "topk_iou": {
+            "mean": 0.193,
+            "min": 0.182,
+            "max": 0.214
+          },
+          "kendall": {
+            "mean": 0.342,
+            "min": 0.333,
+            "max": 0.358
+          },
+          "spearman": {
+            "mean": 0.343,
+            "min": 0.335,
+            "max": 0.361
+          }
+        }
+      },
+      "sham": {
+        "acdc": {
+          "injected_kendall_mean": 0.43,
+          "sham_kendall_mean": 0.0,
+          "gap_mean": 0.43
+        },
+        "activation_patching": {
+          "injected_kendall_mean": 0.363,
+          "sham_kendall_mean": 0.0,
+          "gap_mean": 0.363
+        },
+        "attribution_patching_eap": {
+          "injected_kendall_mean": 0.036,
+          "sham_kendall_mean": -0.184,
+          "gap_mean": 0.22
+        },
+        "grad_x_act": {
+          "injected_kendall_mean": 0.067,
+          "sham_kendall_mean": 0.017,
+          "gap_mean": 0.05
+        },
+        "logit_lens": {
+          "injected_kendall_mean": 0.233,
+          "sham_kendall_mean": 0.237,
+          "gap_mean": -0.004
+        },
+        "mean_ablation": {
+          "injected_kendall_mean": 0.43,
+          "sham_kendall_mean": 0.0,
+          "gap_mean": 0.43
+        },
+        "sae_topk_ablation": {
+          "injected_kendall_mean": 0.275,
+          "sham_kendall_mean": 0.295,
+          "gap_mean": -0.02
+        },
+        "zero_ablation": {
+          "injected_kendall_mean": 0.342,
+          "sham_kendall_mean": 0.0,
+          "gap_mean": 0.342
+        }
+      },
+      "sae": {
+        "mean_keep_rate_mean": 0.0,
+        "min_keep_rate": 0.0,
+        "max_keep_rate": 0.0,
+        "gate_ok_any": false,
+        "gate": 0.9
+      },
+      "quality_passed": true
+    }
+  }
+}

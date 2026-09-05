@@ -1,0 +1,191 @@
+{
+  "git_rev": "25c987c",
+  "gate": 0.6,
+  "core": {
+    "compositional_logic": [
+      "head(11,2)",
+      "mlp(11)"
+    ],
+    "numeric_rule": [
+      "mlp(9)"
+    ]
+  },
+  "bugs": {
+    "compositional_logic": {
+      "seeds": {
+        "1": {
+          "mean_ablation": {
+            "core_iou": 1.0,
+            "union": [
+              "head(11,2)",
+              "mlp(11)"
+            ],
+            "budget_exceeded": false
+          },
+          "zero_ablation": {
+            "core_iou": 0.0,
+            "union": [
+              "head(0,0)",
+              "mlp(8)"
+            ],
+            "budget_exceeded": false
+          },
+          "patch_base": {
+            "core_iou": 0.0,
+            "union": [],
+            "budget_exceeded": true
+          }
+        },
+        "2": {
+          "mean_ablation": {
+            "core_iou": 1.0,
+            "union": [
+              "head(11,2)",
+              "mlp(11)"
+            ],
+            "budget_exceeded": false
+          },
+          "zero_ablation": {
+            "core_iou": 0.3333,
+            "union": [
+              "head(0,0)",
+              "mlp(11)"
+            ],
+            "budget_exceeded": false
+          },
+          "patch_base": {
+            "core_iou": 0.6667,
+            "union": [
+              "head(10,6)",
+              "head(11,2)",
+              "mlp(11)"
+            ],
+            "budget_exceeded": false
+          }
+        },
+        "3": {
+          "mean_ablation": {
+            "core_iou": 1.0,
+            "union": [
+              "head(11,2)",
+              "mlp(11)"
+            ],
+            "budget_exceeded": false
+          },
+          "zero_ablation": {
+            "core_iou": 0.0,
+            "union": [
+              "head(0,0)",
+              "mlp(8)"
+            ],
+            "budget_exceeded": false
+          },
+          "patch_base": {
+            "core_iou": 1.0,
+            "union": [
+              "head(11,2)",
+              "mlp(11)"
+            ],
+            "budget_exceeded": false
+          }
+        }
+      },
+      "core_iou_by_intervention": {
+        "mean_ablation": 1.0,
+        "zero_ablation": 0.0,
+        "patch_base": 0.0
+      },
+      "passed_by_intervention": {
+        "mean_ablation": true,
+        "zero_ablation": false,
+        "patch_base": false
+      },
+      "verdict": "protocol_dependent"
+    },
+    "numeric_rule": {
+      "seeds": {
+        "1": {
+          "mean_ablation": {
+            "core_iou": 1.0,
+            "union": [
+              "mlp(9)"
+            ],
+            "budget_exceeded": false
+          },
+          "zero_ablation": {
+            "core_iou": 0.5,
+            "union": [
+              "head(0,7)",
+              "mlp(9)"
+            ],
+            "budget_exceeded": false
+          },
+          "patch_base": {
+            "core_iou": 1.0,
+            "union": [
+              "mlp(9)"
+            ],
+            "budget_exceeded": false
+          }
+        },
+        "2": {
+          "mean_ablation": {
+            "core_iou": 1.0,
+            "union": [
+              "mlp(9)"
+            ],
+            "budget_exceeded": false
+          },
+          "zero_ablation": {
+            "core_iou": 1.0,
+            "union": [
+              "mlp(9)"
+            ],
+            "budget_exceeded": false
+          },
+          "patch_base": {
+            "core_iou": 1.0,
+            "union": [
+              "mlp(9)"
+            ],
+            "budget_exceeded": false
+          }
+        },
+        "3": {
+          "mean_ablation": {
+            "core_iou": 1.0,
+            "union": [
+              "mlp(9)"
+            ],
+            "budget_exceeded": false
+          },
+          "zero_ablation": {
+            "core_iou": 1.0,
+            "union": [
+              "mlp(9)"
+            ],
+            "budget_exceeded": false
+          },
+          "patch_base": {
+            "core_iou": 1.0,
+            "union": [
+              "mlp(9)"
+            ],
+            "budget_exceeded": false
+          }
+        }
+      },
+      "core_iou_by_intervention": {
+        "mean_ablation": 1.0,
+        "zero_ablation": 0.5,
+        "patch_base": 1.0
+      },
+      "passed_by_intervention": {
+        "mean_ablation": true,
+        "zero_ablation": false,
+        "patch_base": true
+      },
+      "verdict": "protocol_dependent"
+    }
+  }
+}
