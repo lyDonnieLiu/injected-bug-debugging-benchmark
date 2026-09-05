@@ -10,9 +10,6 @@ MODE="${1:-smoke}"
 # 与 run_phase_b_protocol.sh 相同的云端环境约定
 export IBB_DEVICE="${IBB_DEVICE:-cuda:0}"
 export PYTHONPATH="${PYTHONPATH:-$(pwd)}"
-# use_attn_result 的 [batch,pos,heads,d_head,d_model] 中间张量在 T4 上易碎片化 OOM，
-# expandable_segments 让缓存分配器按需扩展段，配合驱动内 CACHE_BATCH_SIZE=32 兜底。
-export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
 
 if [ "$MODE" = "smoke" ]; then
   uv run python scripts/run_phase_b_steering.py \

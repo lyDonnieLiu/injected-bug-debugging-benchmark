@@ -70,7 +70,6 @@ from inject_bugs.gpt2_data import (
 )
 from inject_bugs.gpt2_model import load_tl_gpt2
 from inject_bugs.hooked_utils import (
-    EVAL_BATCH_SIZE,
     HEAD,
     build_patch_base_hooks,
     component_keys,
@@ -254,7 +253,7 @@ def _component_directions(injected, base, tokens, keys: list) -> dict:
 
 
 def _steer_rates(model, trigger_tokens, trigger_labels, normal_tokens, normal_labels,
-                 hooks, batch_size: int = EVAL_BATCH_SIZE) -> tuple[float, float]:
+                 hooks, batch_size: int = CACHE_BATCH_SIZE) -> tuple[float, float]:
     """Trigger rate + normal retention under ``hooks``, batched."""
     def _run(tokens):
         chunks = []
