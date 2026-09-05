@@ -200,7 +200,12 @@ _NAMES_FILTER = lambda n: "hook_result" in n or n.endswith("hook_post")  # noqa:
 
 
 def build_steering_hooks(targets, directions: dict, alpha: float) -> list:
-    """Add ``alpha * direction`` to each target component at the last position."""
+    """Add ``alpha * direction`` to each target component at the last position.
+
+    Modifies the activation in place (like the ablation hooks) rather than
+    cloning: cloning a full ``[batch, pos, heads, d_model]`` tensor on every
+    forward accumulates GPU memory across the sweep and OOMs a T4.
+    """
     hooks: list = []
     for key in targets:
         key = _component_tuple(key)
@@ -210,17 +215,15 @@ def build_steering_hooks(targets, directions: dict, alpha: float) -> list:
             head_idx = rest[0]
 
             def _head_steer(result, hook, _idx=head_idx, _d=direction, _a=alpha):
-                out = result.clone()
-                out[:, -1, _idx, :] = out[:, -1, _idx, :] + _a * _d.to(result.device)
-                return out
+                result[:, -1, _idx, :] = result[:, -1, _idx, :] + _a * _d.to(result.device)
+                return result
 
             hooks.append((f"blocks.{layer}.attn.hook_result", _head_steer))
         else:
 
             def _mlp_steer(post, hook, _d=direction, _a=alpha):
-                out = post.clone()
-                out[:, -1, :] = out[:, -1, :] + _a * _d.to(post.device)
-                return out
+                post[:, -1, :] = post[:, -1, :] + _a * _d.to(post.device)
+                return post
 
             hooks.append((f"blocks.{layer}.mlp.hook_post", _mlp_steer))
     return hooks
@@ -254,20 +257,25 @@ def _component_directions(injected, base, tokens, keys: list) -> dict:
 
 def _steer_rates(model, trigger_tokens, trigger_labels, normal_tokens, normal_labels,
                  hooks, batch_size: int = CACHE_BATCH_SIZE) -> tuple[float, float]:
-    """Trigger rate + normal retention under ``hooks``, batched."""
-    def _run(tokens):
-        chunks = []
+    """Trigger rate + normal retention under ``hooks``, batched.
+
+    Accuracy is accumulated chunk-by-chunk instead of holding the full logits
+    tensors, so the sweep keeps its peak memory flat.
+    """
+    def _acc(tokens, labels):
+        total = 0
+        n = 0
         for start in range(0, tokens.shape[0], batch_size):
             chunk = tokens[start : start + batch_size]
-            chunks.append(model.run_with_hooks(chunk, fwd_hooks=hooks)[:, -1, :])
-        return torch.cat(chunks, dim=0)
+            logits = model.run_with_hooks(chunk, fwd_hooks=hooks)
+            preds = logits[:, -1, :].argmax(dim=-1)
+            lbl = labels[start : start + batch_size].to(preds.device)
+            total += (preds == lbl).sum().item()
+            n += chunk.shape[0]
+        return total / n
 
-    trig_logits = _run(trigger_tokens)
-    labels = trigger_labels.to(trig_logits.device)
-    trig = (trig_logits.argmax(dim=-1) == labels).float().mean().item()
-    ret_logits = _run(normal_tokens)
-    n_labels = normal_labels.to(ret_logits.device)
-    ret = (ret_logits.argmax(dim=-1) == n_labels).float().mean().item()
+    trig = _acc(trigger_tokens, trigger_labels)
+    ret = _acc(normal_tokens, normal_labels)
     return trig, ret
 
 
@@ -347,8 +355,20 @@ def _run_b1(injected_tl, data, new_trigger, new_labels, core, means) -> dict:
 def _run_b2b(injected, base, data, core, other_core, alpha_coarse, alpha_fine_span,
              late_layers, emergence_trigger, emergence_retention, control_ceiling,
              rng: random.Random) -> dict:
-    # direction on the original trigger rows
+    # directions on the original trigger rows (all computed up front so the
+    # injected model can be freed before the steering sweeps, which only steer
+    # the base model).
     directions = _component_directions(injected, base, data.eval_trigger, core)
+    late_components = [
+        key for key in component_keys(base)
+        if key[1] in late_layers and key not in {_component_tuple(c) for c in core}
+    ]
+    ctrl_comp = rng.choice(late_components)
+    ctrl_dirs = _component_directions(injected, base, data.eval_trigger, [ctrl_comp])
+    other_dirs = _component_directions(injected, base, data.eval_trigger, other_core)
+    del injected
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
     def sweep(dirs: dict) -> list[dict]:
         rows = []
@@ -376,18 +396,8 @@ def _run_b2b(injected, base, data, core, other_core, alpha_coarse, alpha_fine_sp
             fine_rows.append({"alpha": round(alpha, 4), "trigger": round(trig, 4),
                               "retention": round(ret, 4)})
 
-    # negative control 1: random late-window component
-    late_components = [
-        key for key in component_keys(base)
-        if key[1] in late_layers and key not in {_component_tuple(c) for c in core}
-    ]
-    ctrl_comp = rng.choice(late_components)
-    ctrl_dirs = _component_directions(injected, base, data.eval_trigger, [ctrl_comp])
     ctrl_rows = sweep(ctrl_dirs)
     ctrl_max = max(r["trigger"] for r in ctrl_rows)
-
-    # negative control 2: the other bug's core
-    other_dirs = _component_directions(injected, base, data.eval_trigger, other_core)
     other_rows = sweep(other_dirs)
     other_max = max(r["trigger"] for r in other_rows)
 
