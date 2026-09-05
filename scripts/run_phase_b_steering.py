@@ -87,6 +87,12 @@ DEFAULT_TM = ("c_attn", "c_proj", "c_fc")
 DEFAULT_POINT = {"lora_layers": [8, 9, 10, 11], "rank": 8,
                  "target_modules": list(DEFAULT_TM)}
 
+# run_with_cache retains hook_result for every layer on top of the use_attn_result
+# [batch, pos, heads, d_head, d_model] transient; on a 14 GB T4 this OOMs at
+# EVAL_BATCH_SIZE once base+injected (+sham) are resident, so cache captures use
+# a smaller chunk.  run_with_hooks (no cache) can stay at EVAL_BATCH_SIZE.
+CACHE_BATCH_SIZE = 32
+
 # Held-out surface templates (same trigger rule, different framing).  Placeholder
 # ``{name}``/``{verb}``/``{n}`` are filled by the per-bug row builders.
 DEFAULT_NEW_TEMPLATES = {
@@ -222,7 +228,7 @@ def build_steering_hooks(targets, directions: dict, alpha: float) -> list:
 
 
 def _last_pos_mean_acts(model, tokens: torch.Tensor, keys: list,
-                        batch_size: int = EVAL_BATCH_SIZE) -> dict:
+                        batch_size: int = CACHE_BATCH_SIZE) -> dict:
     """Mean (over rows) last-position activation of each component."""
     keys = [_component_tuple(k) for k in keys]
     sums: dict = {k: None for k in keys}
@@ -267,7 +273,7 @@ def _steer_rates(model, trigger_tokens, trigger_labels, normal_tokens, normal_la
 
 
 def _patch_trigger(injected, base, tokens, labels, core,
-                   batch_size: int = EVAL_BATCH_SIZE) -> float:
+                   batch_size: int = CACHE_BATCH_SIZE) -> float:
     """Patch injected core activations into base; return resulting trigger rate."""
     hits: list[torch.Tensor] = []
     for start in range(0, tokens.shape[0], batch_size):
@@ -428,6 +434,10 @@ def _run_point(bug: BugType, seed: int, label: str, point: dict, samples: dict,
 
     quality = check_quality_gpt2(base_tl, injected_tl, sham_tl, data, seed=seed, gates=gates)
     logger.info("quality %s s%d: passed=%s", bug.value, seed, quality.passed)
+    # sham model is not used by B1/B2; drop it before the cache-heavy steps.
+    del sham_tl
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
     # B1 new-template gate chain
     rng = random.Random(int(b1_cfg.get("seed", seed)))
@@ -435,7 +445,10 @@ def _run_point(bug: BugType, seed: int, label: str, point: dict, samples: dict,
     n_normal = int(b1_cfg.get("n_eval_normal", 600))
     trig_rows, _norm_rows = build_new_template_rows(bug, rng, n_trigger, n_normal)
     new_trigger, new_labels = encode_new_template(trig_rows)
-    means = compute_mean_activations(injected_tl, data.eval_normal, component_keys(injected_tl))
+    means = compute_mean_activations(
+        injected_tl, data.eval_normal, component_keys(injected_tl),
+        batch_size=CACHE_BATCH_SIZE,
+    )
     b1 = _run_b1(injected_tl, data, new_trigger, new_labels, core_keys, means)
     b1["n_trigger"] = n_trigger
     b1["n_normal"] = n_normal
@@ -448,6 +461,8 @@ def _run_point(bug: BugType, seed: int, label: str, point: dict, samples: dict,
                                 data.trigger_labels, core_keys)
     b2a = {"patch_trigger": round(patch_trig, 4),
            "effect": bool(patch_trig >= 0.30)}
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
     # B2b alpha sweep (only meaningful if B2a shows an effect)
     alpha_coarse = [float(a) for a in b2_cfg.get("alpha_coarse", [0.1, 0.3, 1.0, 3.0, 8.0])]
