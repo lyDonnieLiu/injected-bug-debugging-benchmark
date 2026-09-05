@@ -341,14 +341,15 @@ def _load_models(bug: BugType, seed: int, label: str, point: dict, samples: dict
 # ---------------------------------------------------------------------------
 
 
-def _run_b1(injected_tl, data, new_trigger, new_labels, core, means) -> dict:
+def _run_b1(injected_tl, data, new_trigger, new_labels, core, means,
+            gate0_threshold: float = 0.90, gate1_threshold: float = 0.10) -> dict:
     gate0 = trigger_rate(injected_tl, new_trigger, new_labels)
     gate1 = trigger_rate(injected_tl, new_trigger, new_labels, means=means, ablated=core)
     return {
         "gate0_trigger": round(gate0, 4),
         "gate1_trigger": round(gate1, 4),
-        "gate0_pass": bool(gate0 >= 0.90),
-        "gate1_pass": bool(gate1 < 0.10),
+        "gate0_pass": bool(gate0 >= gate0_threshold),
+        "gate1_pass": bool(gate1 < gate1_threshold),
     }
 
 
@@ -458,7 +459,11 @@ def _run_point(bug: BugType, seed: int, label: str, point: dict, samples: dict,
         injected_tl, data.eval_normal, component_keys(injected_tl),
         batch_size=CACHE_BATCH_SIZE,
     )
-    b1 = _run_b1(injected_tl, data, new_trigger, new_labels, core_keys, means)
+    b1 = _run_b1(
+        injected_tl, data, new_trigger, new_labels, core_keys, means,
+        gate0_threshold=float(b1_cfg.get("gate0_trigger", 0.90)),
+        gate1_threshold=float(b1_cfg.get("gate1_trigger", 0.10)),
+    )
     b1["n_trigger"] = n_trigger
     b1["n_normal"] = n_normal
     b1["verdict"] = "shallow_injection" if not b1["gate0_pass"] else (
@@ -469,7 +474,7 @@ def _run_point(bug: BugType, seed: int, label: str, point: dict, samples: dict,
     patch_trig = _patch_trigger(injected_tl, base_tl, data.eval_trigger,
                                 data.trigger_labels, core_keys)
     b2a = {"patch_trigger": round(patch_trig, 4),
-           "effect": bool(patch_trig >= 0.30)}
+           "effect": bool(patch_trig >= float(b2_cfg.get("patch_effect_threshold", 0.30)))}
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
